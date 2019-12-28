@@ -4,8 +4,11 @@ import Vue from 'vue'
 import App from './App'
 // import router from './router'
 import store from './store/store'
+import VueSlider from 'vue-slider-component'
+import 'vue-slider-component/theme/default.css'
 
 Vue.config.productionTip = false
+Vue.component('VueSlider', VueSlider)
 
 /* eslint-disable no-new */
 new Vue({

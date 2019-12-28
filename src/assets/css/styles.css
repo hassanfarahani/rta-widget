@@ -6,6 +6,12 @@
 
 */
 
+/* @import "../../../node_modules/@syncfusion/ej2-base/styles/material.css";
+@import "../../../node_modules/@syncfusion/ej2-buttons/styles/material.css";
+@import "../../../node_modules/@syncfusion/ej2-popups/styles/material.css";
+@import "../../../node_modules/@syncfusion/ej2-vue-inputs/styles/material.css"; */
+
+
 /* ------------ Global Styles ------------- */
 * {
     box-sizing: border-box;
@@ -317,23 +323,23 @@ body {
     justify-items: center;
 }
 
-/* .plots-box-graphs div {
-    height: 40rem;
-} */
 
 #production-plot, #rta-plot {
     width: 100%;
 }
 
-/* #production-plot svg {
-    width: 100%;
-} */
 
 .line {
     fill: none;
     stroke: maroon;
     stroke-width: 2;
     stroke-linejoin: round; 
+}
+
+.sliderRange {
+    width: 50%;
+    text-align: center;
+    margin: 1rem auto 0 auto;
 }
 
 /*  --------------------------------------------------------- media queries ---------------------------------------------------- */

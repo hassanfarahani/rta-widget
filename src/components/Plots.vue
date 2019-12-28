@@ -5,9 +5,11 @@
             <div class="plots-box-graphs">
               <div id="production-plot">
                 
+                <RangeSlider label="p_p" :min="0" :max="1000" :initVal="[0, 1000]" sliderTitle="Time" />
               </div>
               <div id="rta-plot">
-
+                
+                <RangeSlider label="rta_p" :min="0" :max="3000" :initVal="[0, 3000]" sliderTitle="MBT" />
               </div>
             </div>
         </div>
@@ -16,14 +18,18 @@
 
 <script>
 import * as d3 from 'd3';
+import RangeSlider from '@/components/RangeSlider.vue'
 
 export default {
   name: 'Plots',
+  components: {
+    RangeSlider
+  },
   data () {
     return {
       width:500,
       height: 400,
-      margin: {left: 70, top:20, right:20, bottom: 60}
+      margin: {left: 70, top:20, right:20, bottom: 60},
     }
   },
   computed: {
@@ -36,19 +42,62 @@ export default {
     },
     innerHeight() {
       return this.width - this.margin.top - this.margin.bottom;
+    },
+    p_p_sliderValues() {
+      return this.$store.getters.p_p_sliderValues;
+    },
+    rta_p_sliderValues() {
+      return this.$store.getters.rta_p_sliderValues;
     }
   },
   watch: {
     plotsParams(val) {      
-      this.updateInitVis('#production-plot', 'linear', val);
-      this.updateInitVis('#rta-plot', 'log-log', val);
+      this.updateInitVis('#production-plot', 'p_p', val);
+
+      this.updateInitVis('#rta-plot', 'rta_p', val);
+    },
+    p_p_sliderValues(val) {
+      let p_p_data = this.dataFilter('time', 'q', this.plotsParams);
+      let new_p_p_data = this.filterDataValues(p_p_data, val,'time');
+      this.updateInitVis('#production-plot', 'p_p', new_p_p_data);
+    },
+    rta_p_sliderValues(val) {
+      let rta_p_data = this.dataFilter('MBT', 'q', this.plotsParams);
+      let new_rta_p_data = this.filterDataValues(rta_p_data, val,'MBT');
+      this.updateInitVis('#rta-plot', 'rta_p', new_rta_p_data);
     }
-  },
+  },  
   mounted() {
-    this.initVis('#production-plot', 'linear', this.plotsParams);
-    this.initVis('#rta-plot', 'log-log', this.plotsParams);    
+    this.initVis('#production-plot', 'p_p', this.plotsParams);
+
+    this.initVis('#rta-plot', 'rta_p', this.plotsParams);  
   },
   methods: {
+    // filtering the original data (with all object keys like time, q, MBT, ...) into two specific object keys like time & q or q & MBT
+    dataFilter(keyOne, keyTwo, data) {
+      let allPlotsParams = [];
+      data.forEach(plotsDataSet => {        
+        let singlePlotsParams = [];
+        plotsDataSet.forEach(obj => {
+          let newObj = { // to set object key by variable, in ES6, we have to put the variable in square brackets in order to evaluate it.
+            [keyOne]: obj[keyOne],
+            [keyTwo]: obj[keyTwo]
+          };
+          singlePlotsParams.push(newObj);
+        });
+        allPlotsParams.push(singlePlotsParams);
+      });
+      return allPlotsParams;
+    },
+    // filtering the output of dataFilter function to select the data based on what user select on the dual slider
+    filterDataValues(data, val, keyOne) {
+      let allDataArr = [];
+      data.forEach(dataArr => {
+        let singlePlotsParams = dataArr.filter(obj => obj[keyOne] >= val[0] && obj[keyOne] <= val[1]);
+        allDataArr.push(singlePlotsParams);
+      })
+      return allDataArr;
+    },
     // Adding the new plot (generated from the new user inputs) to the existing plots on the page
     updateInitVis(parentElement, plotType, data) {
       let svgIdPart = this.createSvgIdPart(parentElement);
@@ -88,10 +137,10 @@ export default {
       let x;
       let y;
 
-      if (plotType === 'linear') {
+      if (plotType === 'p_p') {
           x = d3.scaleLinear().range([0, this.innerWidth]);
           y = d3.scaleLinear().range([this.innerHeight, 0]);
-      } else {
+      } else if (plotType === 'rta_p') {
           x = d3.scaleLog().range([0, this.innerWidth]);
           y = d3.scaleLog().range([this.innerHeight, 0]);
       }
@@ -131,7 +180,7 @@ export default {
         
         let pathGenerator;
         // Update scales
-        if (plotType === 'linear') {
+        if (plotType === 'p_p') {
             // x label & y label
             xLabel.text('Time');
             yLabel.text('Rate');
@@ -145,7 +194,7 @@ export default {
             // Path generator
             pathGenerator = this.lineGenerator('time', 'q', x, y);
 
-        } else {
+        } else if (plotType === 'rta_p') {
             // x label & y label
             xLabel.text('MBT');
             yLabel.text('Rate');

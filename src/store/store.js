@@ -6,7 +6,9 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     state: {        
         defSlidersColors: null, // sliders length percentage : an array of strings
-        plotsParams: []  // an array of objects contains the required parameters to make different plots
+        plotsParams: [],  // an array of objects contains the required parameters to make different plots
+        p_p_sliderValues: [0, 1000], // slider values of production plot
+        rta_p_sliderValues: [0, 3000] // slider values of rta plot
     },
     mutations: {
         // storing the length percentage of each slider in an object when the app is initially loaded
@@ -18,9 +20,16 @@ export default new Vuex.Store({
             state.defSlidersColors = colorData;
         },
         setCalcPlotsParams(state, plotsParams) {
-            state.plotsParams.push(plotsParams); 
-            // state.plotsParams.splice(1, 0, plotsParams);
-            // Vue.set(state.plotsParams, 'params', plotsParams )
+            state.plotsParams.push(plotsParams);  
+        },
+        setSliderValues(state, sliderData) {
+            if (sliderData.label === 'p_p') {
+                state.p_p_sliderValues = sliderData.values;
+                // console.log(state.p_p_sliderValues)
+            } else if (sliderData.label === 'rta_p') {
+                state.rta_p_sliderValues = sliderData.values;
+                // console.log(state.rta_p_sliderValues)
+            }
         }
     },
     actions: {
@@ -37,6 +46,10 @@ export default new Vuex.Store({
             
             // sending the length percentage of all sliders with commiting the mutation wlong with the related color data
             commit('setColorSliders', colors);
+        },
+        // getting the new user input values of the slider 
+        getSliderValues({ commit }, sliderData) {
+            commit('setSliderValues', sliderData);
         },
         // Calculation of rates based on the user inputs
         getCalcPlotsParams({ commit }, 
@@ -146,6 +159,7 @@ export default new Vuex.Store({
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
         }
+        
     },
     getters: {
         // getting the sliders length percentage from the state
@@ -155,6 +169,14 @@ export default new Vuex.Store({
         // getting the plots axes parameters from the state
         newPlotsParameters(state) {
             return state.plotsParams;
+        },
+        // slider values of production plot
+        p_p_sliderValues(state) {
+            return state.p_p_sliderValues;
+        },
+        // slider values of production plot
+        rta_p_sliderValues(state) {
+            return state.rta_p_sliderValues;
         }
     }
 });
