@@ -5,11 +5,35 @@
             <div class="plots-box-graphs">
               <div id="production-plot">
                 
-                <RangeSlider label="p_p" :min="0" :max="1000" :initVal="[0, 1000]" sliderTitle="Time" />
+                <div class="sliderRange">
+                    <label class="labeltext">Time</label> 
+                    <vue-slider 
+                        ref="slider" 
+                        v-model="p_p.initVal" 
+                        :min="p_p.min" 
+                        :max="p_p.max" 
+                        @change="sliderInput('p_p')" 
+                        :interval="1"
+                        :lazy="true"
+                        :enable-cross="false">
+                    </vue-slider>
+                </div>
               </div>
               <div id="rta-plot">
                 
-                <RangeSlider label="rta_p" :min="0" :max="3000" :initVal="[0, 3000]" sliderTitle="MBT" />
+                <div class="sliderRange">
+                    <label class="labeltext">MBT</label> 
+                    <vue-slider 
+                        ref="slider"
+                        v-model="rta_p.initVal" 
+                        :min="rta_p.min" 
+                        :max="rta_p.max" 
+                        @change="sliderInput('rta_p')"
+                        :interval="1"
+                        :lazy="true"
+                        :enable-cross="false">
+                    </vue-slider>
+                </div>
               </div>
             </div>
         </div>
@@ -18,23 +42,20 @@
 
 <script>
 import * as d3 from 'd3';
-import RangeSlider from '@/components/RangeSlider.vue'
 
 export default {
   name: 'Plots',
-  components: {
-    RangeSlider
-  },
   data () {
     return {
       width:500,
       height: 400,
       margin: {left: 70, top:20, right:20, bottom: 60},
+      p_p : {min: 0, max: 300, initVal: [0, 300]},
+      rta_p : {min: 0, max: 3000, initVal: [0, 3000]}
     }
   },
   computed: {
     plotsParams() {
-      // console.log('plots - computed', this.$store.getters.newPlotsParameters)
       return this.$store.getters.newPlotsParameters;
     },
     innerWidth() {
@@ -57,7 +78,7 @@ export default {
       this.updateInitVis('#rta-plot', 'rta_p', val);
     },
     p_p_sliderValues(val) {
-      let p_p_data = this.dataFilter('time', 'q', this.plotsParams);
+      let p_p_data = this.dataFilter('time', 'q', this.plotsParams);      
       let new_p_p_data = this.filterDataValues(p_p_data, val,'time');
       this.updateInitVis('#production-plot', 'p_p', new_p_p_data);
     },
@@ -65,7 +86,8 @@ export default {
       let rta_p_data = this.dataFilter('MBT', 'q', this.plotsParams);
       let new_rta_p_data = this.filterDataValues(rta_p_data, val,'MBT');
       this.updateInitVis('#rta-plot', 'rta_p', new_rta_p_data);
-    }
+    },
+
   },  
   mounted() {
     this.initVis('#production-plot', 'p_p', this.plotsParams);
@@ -73,6 +95,14 @@ export default {
     this.initVis('#rta-plot', 'rta_p', this.plotsParams);  
   },
   methods: {
+    sliderInput(label) {
+      let values = this[label].initVal;
+      let data = {
+        label,
+        values
+      };
+      this.$store.dispatch('getSliderValues', data);
+    },
     // filtering the original data (with all object keys like time, q, MBT, ...) into two specific object keys like time & q or q & MBT
     dataFilter(keyOne, keyTwo, data) {
       let allPlotsParams = [];
@@ -112,15 +142,16 @@ export default {
       svgId.shift();
       return svgId.join('');
     },
-    lineGenerator(xVal, yVal, x, y) {
+    lineGenerator(xVal, yVal, xScale, yScale) {
         let path = d3.line()
-              .x(d => x(d[xVal]))
-              .y(d => y(d[yVal]));
+              .x(d => xScale(d[xVal]))
+              .y(d => yScale(d[yVal]));
         
         return path;
     },
     // this method is called to dispaly all the plots with default values in the input section of the page when the page first loaded
     initVis(parentElement, plotType, data) {
+      console.log('current slider values: ', this.p_p.initVal)
       let svgIdPart = this.createSvgIdPart(parentElement);
 
       const svg = d3.select(parentElement)
@@ -134,15 +165,16 @@ export default {
         .attr('margin', 'auto')
       
       // Scales
-      let x;
-      let y;
+      let xScale;
+      let yScale;
 
+      // scale definition
       if (plotType === 'p_p') {
-          x = d3.scaleLinear().range([0, this.innerWidth]);
-          y = d3.scaleLinear().range([this.innerHeight, 0]);
+          xScale = d3.scaleLinear().range([0, this.innerWidth]);
+          yScale = d3.scaleLinear().range([this.innerHeight, 0]);
       } else if (plotType === 'rta_p') {
-          x = d3.scaleLog().range([0, this.innerWidth]);
-          y = d3.scaleLog().range([this.innerHeight, 0]);
+          xScale = d3.scaleLog().range([0, this.innerWidth]);
+          yScale = d3.scaleLog().range([this.innerHeight, 0]);
       }
 
       // X-axis
@@ -172,66 +204,124 @@ export default {
           .attr("text-anchor", "middle")
           // .text("Rate")
 
-      // const t = () => d3.transition().duration(1000);
+      const t = () => d3.transition().duration(1000);    
+
+      console.log('orig data: ', data)
         
-        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-        let max_q = this.findMax(data, 'q');
-        let min_q = this.findMin(data, 'q');
-        
-        let pathGenerator;
         // Update scales
         if (plotType === 'p_p') {
             // x label & y label
             xLabel.text('Time');
             yLabel.text('Rate');
 
-            // finding the maximum x-axis range between all the arrays in data array (plots with different x ranges) ===> data = [ [...], [...], ...]
-            let max_time = this.findMax(data, 'time');
+            // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+            let qMaxProduction = parseInt(this.findMax(data, 'q'));
+            let qMinProduction = parseInt(this.findMin(data, 'q'));
 
-            x.domain([1, max_time]);
-            y.domain([min_q, max_q]);
+            // finding the maximum x-axis range between all the arrays in data array (plots with different x ranges) ===> data = [ [...], [...], ...]
+            let timeMaxProduction = parseInt(this.findMax(data, 'time'));
+            let timeMinProduction = parseInt(this.findMin(data, 'time'));
+            console.log('new time range',timeMinProduction, timeMaxProduction)
+            // console.log(data)
+
+            if (timeMaxProduction >= this.p_p.max) {
+              this.setUpdatethenSet(timeMaxProduction, [this.p_p.initVal[0] , timeMaxProduction], 'p_p');
+            }
+
+            if (timeMinProduction <= this.p_p.min) {
+              this.setUpdatethenSet(timeMinProduction, [timeMinProduction , this.p_p.initVal[1]], 'p_p');
+            }
 
             // Path generator
-            pathGenerator = this.lineGenerator('time', 'q', x, y);
+            // let pathGenerator = this.lineGenerator('time', 'q', xScale, yScale);
+            let line1 = d3.line()
+            // .interpolate('basis')
+              .x(d => xScale(d.time))
+              .y(d => yScale(d.q));
+
+            xScale.domain([timeMinProduction, timeMaxProduction]);
+            yScale.domain([qMinProduction, qMaxProduction]);
+
+
+
+                    // Update axes
+                    xAxisCall.scale(xScale);
+                    // xAxis.call(xAxisCall);
+                    xAxis.transition(t()).call(xAxisCall);
+                    yAxisCall.scale(yScale);
+                    // yAxis.call(yAxisCall);
+                    yAxis.transition(t()).call(yAxisCall);
+
+                    // Update our line path
+                    g.selectAll('.line').data(data)
+                      .enter().append('path')
+                        .attr('class', 'line')
+                        // .attr('fill', 'none')
+                        .attr('d', line1);
 
         } else if (plotType === 'rta_p') {
+
+          console.log('left plot')
             // x label & y label
             xLabel.text('MBT');
             yLabel.text('Rate');
-            // finding the maximum x-axis range between all the arrays in data array ===> data = [ [...], [...], ...]
-            let max_MBT = this.findMax(data, 'MBT');
 
-            x.domain([1, max_MBT]);
-            y.domain([min_q, max_q]);
+            // // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+            let qMaxRTA = parseInt(this.findMax(data, 'q'));
+            let qMinRTA = parseInt(this.findMin(data, 'q'));
+
+            // // finding the maximum x-axis range between all the arrays in data array ===> data = [ [...], [...], ...]
+            let mbtMaxRTA = parseInt(this.findMax(data, 'MBT'));
+            let mbtMinRTA = parseInt(this.findMin(data, 'MBT'));
+
+ 
+            if (mbtMaxRTA > this.rta_p.max) {
+              this.setUpdatethenSet(mbtMaxRTA, [this.rta_p.initVal[0] ,mbtMaxRTA], 'rta_p');
+            }
+
+            if (mbtMinRTA < this.rta_p.min) {
+              this.setUpdatethenSet(mbtMinRTA, [mbtMinRTA, this.rta_p.initVal[1]], 'p_p');
+            }
 
             // Path generator
-            pathGenerator = this.lineGenerator('MBT', 'q', x, y);
-        }
+            // let pathGeneratorr = this.lineGenerator('MBT', 'q', xScale, yScale);
+            let line2 = d3.line()
+            // .interpolate('basis')
+              .x(d => xScale(d.MBT))
+              .y(d => yScale(d.q));
 
-        let nestedData = [];
-        data.forEach((dataItem, index) => {
-          let newDataItem = {
-            key: index,
-            values: dataItem
-          };
-          nestedData.push(newDataItem);
-        });
+            xScale.domain([mbtMinRTA, mbtMaxRTA]);
+            // x.domain([0, 10000]);
+            yScale.domain([qMinRTA, qMaxRTA]);
 
-        // Update axes
-        xAxisCall.scale(x);
-        xAxis.call(xAxisCall);
-        // xAxis.transition(t()).call(xAxisCall);
-        yAxisCall.scale(y);
-        yAxis.call(yAxisCall);
-        // yAxis.transition(t()).call(yAxisCall);
 
-        // Update our line path
-        g.selectAll('.line').data(nestedData)
-          .enter().append('path')
-            .attr('class', 'line')
-            // .attr('fill', 'none')
-            .attr('d', d => pathGenerator(d.values));
+                    // Update axes
+                    xAxisCall.scale(xScale);
+                    // xAxis.call(xAxisCall);
+                    xAxis.transition(t()).call(xAxisCall);
+                    yAxisCall.scale(yScale);
+                    // yAxis.call(yAxisCall);
+                    yAxis.transition(t()).call(yAxisCall);
+
+                    // Update our line path
+                    g.selectAll('.line').data(data)
+                      .enter().append('path')
+                        .attr('class', 'line')
+                        // .attr('fill', 'none')
+                        .attr('d', line2);
+
+        }    
               
+    },
+    setUpdatethenSet (maxVal, setVal, plotType) {
+    	if  (plotType === 'p_p') {
+        this.p_p.max = maxVal
+      } else  {
+        this.rta_p.max = maxVal
+      }
+      this.$nextTick(() => {
+      	this.$refs.slider.setValue(setVal)
+      })
     },
     // find the maximum of any object key (time, q, MBT, ...) in the data array ===> data = [ [...], [...], ...]
     findMax(data, key) {

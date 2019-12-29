@@ -29,11 +29,11 @@
                     <div class="property-name tooltip">&Phi; <span class="tooltiptext">porosity</span></div>
                     <div class="property-unit">fraction</div>
                     <div class="property-value">
-                        <input type="text" class="user-input" value="0.4" v-model="userInputs[0].porosity" @input="changeSliderColor">
+                        <input type="text" class="user-input" v-model="userInputs[0].porosity" @input="changeSliderColor">
                     </div>
                     <div class="property-slider">
                         <input type="range" :min="slidersRange[0].porosity[0]" :max="slidersRange[0].porosity[1]" step="0.1" id="porosity" class="slider" 
-                            v-model="userInputs[0].porosity" @input="changeSliderColor" value="0.5" :style="{ background: color[0]}">
+                            v-model="userInputs[0].porosity" @input="changeSliderColor" :style="{ background: color[0]}">
                     </div>
 
                     <!-- permeability -->
@@ -180,7 +180,7 @@ export default {
         return {
             // The default input values (along with default input range of slider ) when the app is initially loaded on the page
             userInputs: [
-                { porosity: 0.05 },
+                { porosity: 0.07 },
                 { permeability: 0.001 },
                 { fracHalfLength: 100 },
                 { fracHeight: 100 },

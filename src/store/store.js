@@ -8,7 +8,9 @@ export default new Vuex.Store({
         defSlidersColors: null, // sliders length percentage : an array of strings
         plotsParams: [],  // an array of objects contains the required parameters to make different plots
         p_p_sliderValues: [0, 1000], // slider values of production plot
-        rta_p_sliderValues: [0, 3000] // slider values of rta plot
+        rta_p_sliderValues: [0, 3000], // slider values of rta plot
+        minZoom: null,  // the minimum value of zoom slider
+        maxZoom: null  // the maximum value of zoom slider
     },
     mutations: {
         // storing the length percentage of each slider in an object when the app is initially loaded
@@ -30,6 +32,11 @@ export default new Vuex.Store({
                 state.rta_p_sliderValues = sliderData.values;
                 // console.log(state.rta_p_sliderValues)
             }
+        },
+        // setting the the new zoom data (min & max of x axis) for the zoom slider
+        setZoomSliderRange(state, rangeData) {
+            state.minZoom = rangeData[0];
+            state.maxZoom = rangeData[1];
         }
     },
     actions: {
@@ -47,9 +54,13 @@ export default new Vuex.Store({
             // sending the length percentage of all sliders with commiting the mutation wlong with the related color data
             commit('setColorSliders', colors);
         },
-        // getting the new user input values of the slider 
+        // getting the new user input values of the input slider 
         getSliderValues({ commit }, sliderData) {
             commit('setSliderValues', sliderData);
+        },
+        // getting the the new zoom data (min & max of x axis) for the zoom slider
+        getZoomSliderRange({ commit }, rangeData) {
+            commit('setZoomSliderRange', rangeData);
         },
         // Calculation of rates based on the user inputs
         getCalcPlotsParams({ commit }, 
@@ -177,6 +188,14 @@ export default new Vuex.Store({
         // slider values of production plot
         rta_p_sliderValues(state) {
             return state.rta_p_sliderValues;
+        },
+        // getting the min value for the zoom slider
+        minZoomSlider(state) {
+            return state.minZoom;
+        },
+        // getting the max value for the zoom slider
+        maxZoomSlider(state) {
+            return state.maxZoom;
         }
     }
 });
