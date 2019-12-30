@@ -331,9 +331,10 @@ body {
 
 .line {
     fill: none;
-    stroke: maroon;
+    /* stroke: maroon; */
     stroke-width: 2;
     stroke-linejoin: round; 
+    stroke-linecap: round;
 }
 
 .sliderRange {

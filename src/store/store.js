@@ -7,10 +7,8 @@ export default new Vuex.Store({
     state: {        
         defSlidersColors: null, // sliders length percentage : an array of strings
         plotsParams: [],  // an array of objects contains the required parameters to make different plots
-        p_p_sliderValues: [0, 1000], // slider values of production plot
-        rta_p_sliderValues: [0, 3000], // slider values of rta plot
-        minZoom: null,  // the minimum value of zoom slider
-        maxZoom: null  // the maximum value of zoom slider
+        productionPlotSliderValues: [], // slider values of production plot
+        rtaPlotSliderValues: [] // slider values of rta plot
     },
     mutations: {
         // storing the length percentage of each slider in an object when the app is initially loaded
@@ -24,20 +22,15 @@ export default new Vuex.Store({
         setCalcPlotsParams(state, plotsParams) {
             state.plotsParams.push(plotsParams);  
         },
-        setSliderValues(state, sliderData) {
-            if (sliderData.label === 'p_p') {
-                state.p_p_sliderValues = sliderData.values;
+        setSliderValues(state, updatedSliderData) {
+            if (updatedSliderData.plotType === 'productionPlot') {
+                state.productionPlotSliderValues = updatedSliderData.values;
                 // console.log(state.p_p_sliderValues)
-            } else if (sliderData.label === 'rta_p') {
-                state.rta_p_sliderValues = sliderData.values;
+            } else if (updatedSliderData.plotType === 'rtaPlot') {
+                state.rtaPlotSliderValues = updatedSliderData.values;
                 // console.log(state.rta_p_sliderValues)
             }
         },
-        // setting the the new zoom data (min & max of x axis) for the zoom slider
-        setZoomSliderRange(state, rangeData) {
-            state.minZoom = rangeData[0];
-            state.maxZoom = rangeData[1];
-        }
     },
     actions: {
         // slider background color along with all the slider default values when the app is initially loaded
@@ -55,12 +48,8 @@ export default new Vuex.Store({
             commit('setColorSliders', colors);
         },
         // getting the new user input values of the input slider 
-        getSliderValues({ commit }, sliderData) {
-            commit('setSliderValues', sliderData);
-        },
-        // getting the the new zoom data (min & max of x axis) for the zoom slider
-        getZoomSliderRange({ commit }, rangeData) {
-            commit('setZoomSliderRange', rangeData);
+        getSliderValues({ commit }, updatedSliderData) {
+            commit('setSliderValues', updatedSliderData);
         },
         // Calculation of rates based on the user inputs
         getCalcPlotsParams({ commit }, 
@@ -182,20 +171,12 @@ export default new Vuex.Store({
             return state.plotsParams;
         },
         // slider values of production plot
-        p_p_sliderValues(state) {
-            return state.p_p_sliderValues;
+        productionPlotSliderValues(state) {
+            return state.productionPlotSliderValues;
         },
         // slider values of production plot
-        rta_p_sliderValues(state) {
-            return state.rta_p_sliderValues;
-        },
-        // getting the min value for the zoom slider
-        minZoomSlider(state) {
-            return state.minZoom;
-        },
-        // getting the max value for the zoom slider
-        maxZoomSlider(state) {
-            return state.maxZoom;
+        rtaPlotSliderValues(state) {
+            return state.rtaPlotSliderValues;
         }
     }
 });
