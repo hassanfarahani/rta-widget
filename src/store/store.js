@@ -8,7 +8,9 @@ export default new Vuex.Store({
         defSlidersColors: null, // sliders length percentage : an array of strings
         plotsParams: [],  // an array of objects contains the required parameters to make different plots
         productionPlotSliderValues: [], // slider values of production plot
-        rtaPlotSliderValues: [] // slider values of rta plot
+        rtaPlotSliderValues: [], // slider values of rta plot
+        rnpPlotSliderValues: [], // slider values of rnp plot
+        rnpPlotSlope: null
     },
     mutations: {
         // storing the length percentage of each slider in an object when the app is initially loaded
@@ -29,8 +31,14 @@ export default new Vuex.Store({
             } else if (updatedSliderData.plotType === 'rtaPlot') {
                 state.rtaPlotSliderValues = updatedSliderData.values;
                 // console.log(state.rta_p_sliderValues)
+            } else if (updatedSliderData.plotType === 'rnpPlot') {
+                state.rnpPlotSliderValues = updatedSliderData.values;
+                // console.log(state.rta_p_sliderValues)
             }
         },
+        setTheSlopeOfRNPPlot(state, slope) {
+            state.rnpPlotSlope = slope;
+        }
     },
     actions: {
         // slider background color along with all the slider default values when the app is initially loaded
@@ -51,36 +59,75 @@ export default new Vuex.Store({
         getSliderValues({ commit }, updatedSliderData) {
             commit('setSliderValues', updatedSliderData);
         },
+        // calculation of the slope of RNP (rate-normalized pressure) plot
+        getTheSlopeOfRNPPlot({ commit }, { MBTDataPoints, RNPDataPoints}) {
+            let linearRegressionResults = {};
+            let n = RNPDataPoints.length;
+            let sum_x = 0;
+            let sum_y = 0;
+            let sum_xy = 0;
+            let sum_xx = 0;
+            let sum_yy = 0;
+        
+            for (let i = 0; i < RNPDataPoints.length; i++) {
+        
+                sum_x += MBTDataPoints[i];
+                sum_y += RNPDataPoints[i];
+                sum_xy += (MBTDataPoints[i]*RNPDataPoints[i]);
+                sum_xx += (MBTDataPoints[i]*MBTDataPoints[i]);
+                sum_yy += (RNPDataPoints[i]*RNPDataPoints[i]);
+            } 
+        
+            linearRegressionResults['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
+            linearRegressionResults['intercept'] = (sum_y - linearRegressionResults.slope * sum_x)/n;
+            linearRegressionResults['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
+            console.log(linearRegressionResults)
+            commit('setTheSlopeOfRNPPlot', linearRegressionResults.slope);
+        },
         // Calculation of rates based on the user inputs
-        getCalcPlotsParams({ commit }, 
+        getCalcPlotsParams({ commit, dispatch }, 
             { porosity, permeability, fracHalfLength, fracHeight, fracSpacing, fracNum, compressibility, resPressure, flowingWellPressure, FVF, viscosity, rate }) {
-
+            // Calculation of volumetric Oil In Place
+            const volumetricHCInPlace = 4 * fracHalfLength * fracSpacing * fracHeight * porosity * fracNum / FVF;
+            
             // calculation of end of half-slope line time (tehs)
             const tehs = (porosity * viscosity * compressibility / permeability) * Math.pow((fracSpacing / 0.1591) , 2);
-            console.log(tehs)
            
             // in case of high perm reservoir, in which tehs is relatively short
-            let plotTimeRange;
+            let timeRange;
             if (tehs <= 50) {
-                plotTimeRange = 150;
+                timeRange = 150;
             } else {
                 // the time range that is going to be displayed on the plots
-                plotTimeRange = 2 * tehs;
+                // timeRange = 2 * tehs;
+                timeRange = tehs;
             }
 
             // the time step on the plots
-            const deltaT = Math.ceil(plotTimeRange / 250);
+            const deltaT = Math.ceil(timeRange / 250);
 
             // dimensionless time array contains dimensionless time value for each specific time tDxe
             // calculation of time axis & its range ==> timeAxisRange
+            let initialTime = tehs - tehs/2; // start of x axis (time)
+            let endTime = tehs + tehs/2; // end of x axis (time)
             let tDxe = [];            
             let time = [];
-            for (let t=1; t <= plotTimeRange; t=t+deltaT) {
+            // for (let t=1; t <= timeRange; t=t+deltaT) {
+            for (let t=1; t <= endTime; t=t+deltaT) {
                 // tDxi === dimensionless time in a one specific t
                 let tDxi = (0.00633 * permeability * t) / (porosity * viscosity * compressibility * Math.pow(fracHalfLength, 2));
                 tDxe.push(tDxi);
                 time.push(t);
             };
+            // console.log('time', time)
+            // insertion of tehs into the time array
+            let tehsIndexInTimeArray = 0; // index of end of linear flow time value in the time array
+            for (let i=0; i < time.length; i++) {
+                if (tehs >= time[i] && tehs <= time[i+1]) {
+                    tehsIndexInTimeArray = i + 1;
+                }
+            }
+            time[tehsIndexInTimeArray] = parseFloat(tehs.toFixed(2));
 
             // sum calculation (exponential term) in Equation 3 
             const n_max = 73;
@@ -110,24 +157,25 @@ export default new Vuex.Store({
             let q = [];
             q_org.forEach(qi => {
                 if (qi > rate) {
-                    q.push(qi);
+                    q.push(parseFloat(qi.toFixed(2)));
                 }
             });
 
             // calculation of the reciprocal of q
-            let q_rec = q.map(qi => 1/qi);
+            let q_rec = q.map(qi => parseFloat((1/qi).toFixed(3)));
 
             // calculation of square root of time
-            let t_sqrt = time.map(ti => Math.pow(ti, 0.5));
+            let t_sqrt = time.map(ti => parseFloat((Math.pow(ti, 0.5)).toFixed(3)));
+
 
             // calculation of (Pi - Pwf)/ q (rate-normalized pressure)
-            let RNP = q.map(qi => (resPressure - flowingWellPressure) / qi);
+            let RNP = q.map(qi => parseFloat(((resPressure - flowingWellPressure) / qi).toFixed(3)));
 
             // calculation of cumulative production (Q)
             let delta_q = []
             q.forEach((qi, index) => {
                 if (index === 0) {
-                    delta_q.push(qi);
+                    delta_q.push(qi * time[index]);
                 } else {
                     delta_q.push(qi * (time[index] - time[index - 1]));
                 }
@@ -135,9 +183,20 @@ export default new Vuex.Store({
 
             let Q = [];
             delta_q.reduce((a, b, index) => Q[index] = a + b, 0);
+            console.log('cum Q', Q)
 
             // calculation of MBT (material balance time) 
-            let MBT = q.map((qi, index) => Q[index]/qi);
+            let MBT = q.map((qi, index) => parseFloat((Q[index]/qi).toFixed(3)));
+
+            // calculation of HC in place using the slope of RNP plot after end of linear flow
+            // first step: selection of data points
+            // let arraySliceIndex = tehsIndexInTimeArray + (MBT.length - tehsIndexInTimeArray) / 2;
+            let dataForRNPSlopeCalculation = {
+                MBTDataPoints: MBT.slice(tehsIndexInTimeArray),
+                RNPDataPoints: RNP.slice(tehsIndexInTimeArray)
+            };
+            // calculation of slope
+            dispatch('getTheSlopeOfRNPPlot', dataForRNPSlopeCalculation);
 
             // preparing the required data to be sent to the mutation
             let plotsParams = [];
@@ -147,15 +206,20 @@ export default new Vuex.Store({
                     q: qi,
                     t_sqrt: t_sqrt[i],
                     q_rec: q_rec[i],
+                    Q: Q[i],
                     RNP: RNP[i],
                     MBT: MBT[i],
+                    endOfLinearFlowParams: {
+                        time: time[tehsIndexInTimeArray],
+                        MBT: MBT[tehsIndexInTimeArray],
+                        RNP: RNP[tehsIndexInTimeArray],
+                        q: q[tehsIndexInTimeArray]
+                    }
                 };
                 
                 plotsParams.push(plotParams);
             });            
-
-            // console.log(plotsParams)
-
+            console.log('all parameters:', plotsParams)
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
         }
@@ -177,6 +241,13 @@ export default new Vuex.Store({
         // slider values of production plot
         rtaPlotSliderValues(state) {
             return state.rtaPlotSliderValues;
+        },
+        // slider values of production plot
+        rnpPlotSliderValues(state) {
+            return state.rnpPlotSliderValues;
+        },
+        rnpPlotSlope(state) {
+            return state.rnpPlotSlope;
         }
     }
 });

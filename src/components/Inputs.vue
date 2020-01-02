@@ -43,7 +43,7 @@
                         <input type="text" class="user-input"  v-model="userInputs[1].permeability" @input="changeSliderColor">
                     </div>
                     <div class="property-slider">
-                        <input type="range" :min="slidersRange[1].permeability[0]" :max="slidersRange[1].permeability[1]" step="0.1" id="permeability" class="slider"
+                        <input type="range" :min="slidersRange[1].permeability[0]" :max="slidersRange[1].permeability[1]" step="0.01" id="permeability" class="slider"
                         v-model="userInputs[1].permeability" @input="changeSliderColor" :style="{ background: color[1]}">
                     </div>
 
@@ -168,6 +168,25 @@
         <div class="calculation">
             <button @click="calcPlotsParams" class="btn btn-calc">Calculate</button>
         </div>
+
+        <div class="output-box">
+            <div class="output-box-header">Output</div>
+            <div class="output-box-parameters">
+                <div class="properties-title">Calculated Parameters</div>
+                <div class="calculated-parameters">
+                    <div>N<sub>vol</sub> (STB)</div>
+                    <div>{{ volumetricHCInPlace }}</div>
+                    <div>N <sub>FMB</sub> (STB)</div>
+                    <div>{{ hcInPlaceFromRNPPlot }}</div>
+                    <div>t <sub>elf</sub> (days)</div>
+                    <div>{{ endOfHalfSlopeLineTime }}</div>
+                </div>
+            </div>
+
+            
+
+
+        </div>
         
     </div>
 </template>
@@ -180,8 +199,8 @@ export default {
         return {
             // The default input values (along with default input range of slider ) when the app is initially loaded on the page
             userInputs: [
-                { porosity: 0.07 },
-                { permeability: 0.001 },
+                { porosity: 0.01 },
+                { permeability: 0.002 },
                 { fracHalfLength: 100 },
                 { fracHeight: 100 },
                 { fracSpacing: 100 },
@@ -190,13 +209,13 @@ export default {
                 { resPressure: 5000 },
                 { flowingWellPressure: 500 },
                 { FVF: 1.2 },
-                { viscosity: 0.5 },
+                { viscosity: 0.3 },
                 { rate: 0.05 }
             ],
             // min & max values of each property
             slidersRange: [
                 { porosity: [0, 1] },
-                { permeability: [0, 10] },
+                { permeability: [0, 1] },
                 { fracHalfLength: [1, 200] },
                 { fracHeight: [1, 200] },
                 { fracSpacing: [1, 200] },
@@ -231,6 +250,20 @@ export default {
                 rate: this.userInputs[11].rate
             }
         },
+        // calculation of volumetric hydrocarbon in place using user input parameters
+        volumetricHCInPlace() {
+            const N = 4 * this.userInputs[2].fracHalfLength * this.userInputs[4].fracSpacing * this.userInputs[3].fracHeight * this.userInputs[0].porosity * this.userInputs[5].fracNum / (this.userInputs[9].FVF * 5.615);
+            return N.toFixed(2);
+        },
+        endOfHalfSlopeLineTime() {
+            const tehs = (this.userInputs[0].porosity * this.userInputs[10].viscosity * this.userInputs[6].compressibility / this.userInputs[1].permeability) * Math.pow((this.userInputs[4].fracSpacing / 0.1591) , 2);
+            return tehs.toFixed(2);
+        },
+        hcInPlaceFromRNPPlot() {
+            const slope = this.$store.getters.rnpPlotSlope;
+            const mbtHcInPlace = 1 / (slope * this.userInputs[6].compressibility)
+            return mbtHcInPlace.toFixed(2);
+        }
     },
     created() {
         // determining the slider background color by dispatching 'getColorSliders' action along with default values data

@@ -6,7 +6,9 @@
               <div id="production-plot">
                 
                 <div class="sliderRange">
-                    <label class="labeltext">Time</label> 
+                    <label class="labeltext">
+                      Time (days): <em>{{ productionPlotSliderParams.sliderValues[0] }} - {{ productionPlotSliderParams.sliderValues[1] }}</em>
+                    </label> 
                     <vue-slider 
                         ref="slider" 
                         v-model="productionPlotSliderParams.sliderValues" 
@@ -15,6 +17,9 @@
                         @change="reRenderPlotByUpdatedSliderValues('productionPlot')" 
                         :interval="1"
                         :enable-cross="false">
+                        <template v-slot:dot="{ value, focus }">
+                          <div :class="['custom-dot', { focus }]"></div>
+                        </template>
                     </vue-slider>
                 </div>
               </div>
@@ -22,7 +27,9 @@
               <div id="rta-plot">
                 
                 <div class="sliderRange">
-                    <label class="labeltext">MBT</label> 
+                    <label class="labeltext">
+                      MBT (1/day): <em>{{ rtaPlotSliderParams.sliderValues[0] }} - {{ rtaPlotSliderParams.sliderValues[1] }}</em>
+                    </label> 
                     <vue-slider 
                         ref="slider"
                         v-model="rtaPlotSliderParams.sliderValues" 
@@ -31,6 +38,30 @@
                         @change="reRenderPlotByUpdatedSliderValues('rtaPlot')"
                         :interval="1"
                         :enable-cross="false">
+                        <template v-slot:dot="{ value, focus }">
+                          <div :class="['custom-dot', { focus }]"></div>
+                        </template>
+                    </vue-slider>
+                </div>
+              </div>
+
+              <div id="rnp-plot">
+                
+                <div class="sliderRange">
+                    <label class="labeltext">
+                      MBT (1/day): <em>{{ rnpPlotSliderParams.sliderValues[0] }} - {{ rnpPlotSliderParams.sliderValues[1] }}</em>
+                    </label> 
+                    <vue-slider 
+                        ref="slider"
+                        v-model="rnpPlotSliderParams.sliderValues" 
+                        :min="rnpPlotSliderParams.min" 
+                        :max="rnpPlotSliderParams.max" 
+                        @change="reRenderPlotByUpdatedSliderValues('rnpPlot')"
+                        :interval="1"
+                        :enable-cross="false">
+                        <template v-slot:dot="{ value, focus }">
+                          <div :class="['custom-dot', { focus }]"></div>
+                        </template>
                     </vue-slider>
                 </div>
               </div>
@@ -49,8 +80,9 @@ export default {
       width:500,
       height: 400,
       margin: {left: 70, top:20, right:20, bottom: 60},
-      productionPlotSliderParams : {min: 0, max: 300, sliderValues: [0, 300]},
-      rtaPlotSliderParams : {min: 0, max: 300, sliderValues: [0, 300]}
+      productionPlotSliderParams : {min: 0, max: 500, sliderValues: [0, 500]},
+      rtaPlotSliderParams : {min: 0, max: 300, sliderValues: [0, 300]},
+      rnpPlotSliderParams : {min: 0, max: 400, sliderValues: [0, 400]}
     }
   },
   computed: {
@@ -68,6 +100,9 @@ export default {
     },
     rtaPlotSliderValues() {
       return this.$store.getters.rtaPlotSliderValues;
+    },
+    rnpPlotSliderValues() {
+      return this.$store.getters.rnpPlotSliderValues;
     }
   },
   watch: {
@@ -75,6 +110,8 @@ export default {
       this.updateInitVis('#production-plot', 'productionPlot', val);
 
       this.updateInitVis('#rta-plot', 'rtaPlot', val);
+
+      this.updateInitVis('#rnp-plot', 'rnpPlot', val);
     },
     productionPlotSliderValues(updatedSliderValues) {
       console.log('pp plot slider updated')
@@ -88,12 +125,20 @@ export default {
       let selectedRtaPlotData = this.filterDataByUpdatedSliderValues(rtaPlotData, updatedSliderValues,'MBT');
       this.updateInitVis('#rta-plot', 'rtaPlot', selectedRtaPlotData);
     },
+    rnpPlotSliderValues(updatedSliderValues) {
+      console.log('rnp plot slider updated')
+      let rnpPlotData = this.filterDatabyPlotTypeParams('MBT', 'RNP', this.plotsParams);
+      let selectedRnpPlotData = this.filterDataByUpdatedSliderValues(rnpPlotData, updatedSliderValues,'MBT');
+      this.updateInitVis('#rnp-plot', 'rnpPlot', selectedRnpPlotData);
+    }
 
   },  
   mounted() {
     this.initVis('#production-plot', 'productionPlot', this.plotsParams);
 
     this.initVis('#rta-plot', 'rtaPlot', this.plotsParams);  
+
+    this.initVis('#rnp-plot', 'rnpPlot', this.plotsParams);  
   },
   methods: {
     reRenderPlotByUpdatedSliderValues(plotType) {
@@ -112,7 +157,8 @@ export default {
         plotsDataSet.forEach(obj => {
           let newObj = { // to set object key by variable, in ES6, we have to put the variable in square brackets in order to evaluate it.
             [xAxisParam]: obj[xAxisParam],
-            [yAxisParam]: obj[yAxisParam]
+            [yAxisParam]: obj[yAxisParam],
+            endOfLinearFlowParams: obj.endOfLinearFlowParams
           };
           singlePlotsParams.push(newObj);
         });
@@ -165,32 +211,71 @@ export default {
         }
 
     },
-    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator) {
+    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType) {
 
         const colorScale = d3.scaleOrdinal(d3.schemeCategory10); // set color scale range
         colorScale.domain(data.map((d, index) => index)); // set color domain
 
-        // const t = () => d3.transition().duration(100); 
-
         // Update axes
         xAxisCall.scale(xScale);
-        xAxis.call(xAxisCall);
-        // xAxis.transition(t()).call(xAxisCall);
+        xAxis.call(xAxisCall)
+
         yAxisCall.scale(yScale);
         yAxis.call(yAxisCall);
 
-        // Update our line path
+         // Update our line path
         g.selectAll('.line').data(data)
           .enter().append('path')
             .attr('class', 'line')
             .attr('fill', 'red')
-            // .transition(t())
             .attr('d', pathGenerator)
             .attr('stroke', (d, index) => colorScale(index));
+
+        // insertion of end of linear flow time line into the plots
+        this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g);        
+    },
+    // add a vertical line to each plot to show the end of linear flow time
+    addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g) {
+      let xAxisLabel;
+      let yAxisLabel;
+      let verticalLineLabel;
+      if (plotType === 'productionPlot') {
+        xAxisLabel = 'time';
+        yAxisLabel = 'q';
+        verticalLineLabel = 'telf';
+      } else if (plotType === 'rtaPlot') {
+        xAxisLabel = 'MBT';
+        yAxisLabel = 'q';
+        verticalLineLabel = 'MBTelf';
+      } else if (plotType === 'rnpPlot') {
+        xAxisLabel = 'MBT';
+        yAxisLabel = 'RNP';
+        verticalLineLabel = 'MBTelf';
+      }
+      const distanceFromCurve = 5;
+        data.forEach(dataSet => {
+              g.append('line')
+                .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel]))
+                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel]))
+                .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisLabel]))
+                .attr('y2', this.innerHeight)
+                .attr('stroke', 'green')
+                .style('stroke-dasharray', ('3, 3'));
+              
+              g.append('text')
+                .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisLabel]}`)
+                  .attr('fill', 'black')
+                  .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel])}`)
+                  .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisLabel]) - distanceFromCurve}` )
+                  .attr('text-anchor', 'start')
+                  .attr('font-size', '0.8rem')
+                  .attr('font-style', 'italic')
+                  .style('fill', 'maroon') 
+        })
     },
     // this method is called to dispaly all the plots with default values in the input section of the page when the page first loaded
     initVis(parentElement, plotType, data) {
-
+      console.log('plot type :', plotType)
       // Creating & Adding svg to the page
       let svgIdPart = this.createSvgIdPart(parentElement);
 
@@ -209,23 +294,28 @@ export default {
       let yScale;
 
       // scale definition
-      if (plotType === 'productionPlot') {
+      if (plotType === 'productionPlot' || plotType === 'rnpPlot') {
           xScale = d3.scaleLinear().range([0, this.innerWidth]);
           yScale = d3.scaleLinear().range([this.innerHeight, 0]);
+
       } else if (plotType === 'rtaPlot') {
           xScale = d3.scaleLog().range([0, this.innerWidth]);
-          yScale = d3.scaleLog().range([this.innerHeight, 0]);
-      }
-    
+          yScale = d3.scaleLog().range([this.innerHeight, 0]); 
+      } 
+
       // X-axis
       const xAxisCall = d3.axisBottom()
-          // .ticks(4);
+          .ticks(3, ",f")
+          .tickFormat(d3.format(",.0f"));
+    
       const xAxis = g.append('g')
           .attr('class', 'x axis')
           .attr('transform', `translate(0,${this.innerHeight})`);
 
       // Y-axis
       const yAxisCall = d3.axisLeft()
+          .ticks(10)
+          .tickFormat(d3.format(",.0f"));
       const yAxis = g.append('g')
           .attr('class', 'y axis');
 
@@ -271,7 +361,7 @@ export default {
             yScale.domain(yAxisExtremse);
 
             // update axes & line path
-            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator);
+            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'productionPlot');
 
 
         } else if (plotType === 'rtaPlot') {
@@ -298,15 +388,211 @@ export default {
             yScale.domain(yAxisExtremse);
 
             // update axes & line path
-            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator);
-        }    
-              
+            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'rtaPlot');
+
+
+            // tooltip ----------------------------------------------------------------------------
+            // tooltip ----------------------------------------------------------------------------
+
+          //   let updatedData = [];
+          //   data.forEach((dataItem, i) => {
+          //     let updatedDataItem = [];
+          //     dataItem.forEach(obj => {
+          //       obj = {...obj, index: String(i)}
+          //       updatedDataItem.push(obj)
+          //     });
+          //     updatedData.push(updatedDataItem)
+          //   })
+          //   console.log('updated data: ', updatedData)
+
+          //   let nestedData = [];
+          //   updatedData.forEach((dataItem, i) => {
+          //     let obj = {key: String(i), values: dataItem};
+          //     nestedData.push(obj)
+          //   })
+
+
+          //   console.log('nested data', nestedData)
+
+          //   let lineStroke = '3px';
+
+          //   let tooltip = d3.select("#rta-plot").append("div")
+          //     .attr('id', 'tooltip')
+          //     .style('position', 'absolute')
+          //     .style("background-color", "#D3D3D3")
+          //     .style('padding', 6)
+          //     .style('display', 'none')
+
+          //   let mouseG = g.append("g")
+          //     .attr("class", "mouse-over-effects");
+
+          //   mouseG.append("path") // create vertical line to follow mouse
+          //     .attr("class", "mouse-line")
+          //     .style("stroke", "#A9A9A9")
+          //     .style("stroke-width", lineStroke)
+          //     .style("opacity", "0");
+
+          //   // let lines = document.getElementsByClassName('line');
+
+          //   let mousePerLine = mouseG.selectAll('.mouse-per-line')
+          //     .data(nestedData)
+          //     .enter()
+          //     .append("g")
+          //     .attr("class", "mouse-per-line");
+
+          //   mousePerLine.append("circle")
+          //     .attr("r", 4)
+          //     // .style("stroke", function (d) {
+          //     //   return color(d.key)
+          //     // })
+          //     .style("fill", "red")
+          //     .style("stroke-width", lineStroke)
+          //     .style("opacity", "0");
+
+          //     let heightInner = this.innerHeight;
+          //     let self = this;
+
+
+          // mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
+          //   .attr('width', this.innerWidth) 
+          //   .attr('height', this.innerHeight)
+          //   .attr('fill', 'none')
+          //   .attr('pointer-events', 'all')
+          //   .on('mouseout', function () { // on mouse out hide line, circles and text
+          //     d3.select(".mouse-line")
+          //       .style("opacity", "0");
+          //     d3.selectAll(".mouse-per-line circle")
+          //       .style("opacity", "0");
+          //     d3.selectAll(".mouse-per-line text")
+          //       .style("opacity", "0");
+          //     d3.selectAll("#tooltip")
+          //       .style('display', 'none')
+
+          //   })
+          //   .on('mouseover', function () { // on mouse in show line, circles and text
+          //     d3.select(".mouse-line")
+          //       .style("opacity", "1");
+          //     d3.selectAll(".mouse-per-line circle")
+          //       .style("opacity", "1");
+          //     d3.selectAll("#tooltip")
+          //       .style('display', 'block')
+          //   })
+          //   .on('mousemove', function () { // update tooltip content, line, circles and text when mouse moves
+          //     let mouse = d3.mouse(this)
+
+          //     d3.selectAll(".mouse-per-line")
+          //       .attr("transform", function (d, i) {
+          //         let xMBT = xScale.invert(mouse[0]) // use 'invert' to get date corresponding to distance from mouse position relative to svg
+          //         let bisect = d3.bisector(function (d) { return d.MBT; }).left // retrieve row index of date on parsed csv
+          //         let idx = bisect(d.values, xMBT);
+
+
+          //         d3.select(".mouse-line")
+          //           .attr("d", function () {
+          //             let data = "M" + xScale(d.values[idx].MBT) + "," + (heightInner);
+          //             data += " " + xScale(d.values[idx].MBT) + "," + 0;
+
+          //             return data;
+          //           });
+
+          //         return "translate(" + xScale(d.values[idx].MBT) + "," + yScale(d.values[idx].q) + ")";
+
+          //       });
+
+          //       self.updateTooltipContent(mouse, nestedData, xScale, tooltip)
+
+          //   });
+
+          // -------------- tooltip ----------------------------------------------------------------------------
+          // -------------- tooltip ----------------------------------------------------------------------------
+
+                      
+
+        } else if (plotType === 'rnpPlot') {
+            // x label & y label
+            xLabel.text('MBT');
+            yLabel.text('(Pi - Pwf)/q');
+
+            // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+            let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(data, 'MBT', 'RNP');
+
+            if (xAxisExtremse[0] < this.rnpPlotSliderParams.min) {
+              this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0], this.rnpPlotSliderParams.sliderValues[1]], 'rnpPlot', 'min');
+            }
+ 
+            if (xAxisExtremse[1] > this.rnpPlotSliderParams.max) {
+              this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this.rnpPlotSliderParams.sliderValues[0] ,xAxisExtremse[1]], 'rnpPlot', 'max');
+            }
+
+            // Path generator
+            let pathGenerator = this.lineGenerator('MBT', 'RNP', xScale, yScale);
+
+            xScale.domain(xAxisExtremse);
+            // x.domain([0, 10000]);
+            yScale.domain(yAxisExtremse);
+
+            // update axes & line path
+            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'rnpPlot');
+        }
+  
+            
     },
+    // updateTooltipContent(mouse, nestedData, xScale, tooltip) {
+    //     // --------------------------- updata function
+    //     let sortingObj = []
+
+    //     nestedData.map(d => {
+    //       let xMBT = xScale.invert(mouse[0])
+    //       let bisect = d3.bisector(d => d.MBT).left;
+    //       console.log('bisect: ', bisect)
+    //       let idx = bisect(d.values, xMBT);
+    //       sortingObj.push({
+    //         index: d.values[idx].index,
+    //         q: d.values[idx].q, 
+    //         MBT: d.values[idx].MBT
+    //       })
+    //     });
+
+    //     sortingObj.sort(function(x, y){
+    //       return d3.descending(x.q, y.q);
+    //     })
+
+    //     // var sortingArr = sortingObj.map(d=> d.key)
+
+    //     // var nestedData1 = nestedData.slice().sort(function(a, b){
+    //     //   return sortingArr.indexOf(a.key) - sortingArr.indexOf(b.key) // rank vehicle category based on price of premium
+    //     // })
+
+    //     // tooltip.html(sortingObj[0].month + "-" + sortingObj[0].year + " (Bidding No:" + sortingObj[0].bidding_no + ')')
+
+    //     tooltip
+    //     .html(`rate: ${sortingObj[0].q}`)
+    //       .style('display', 'block')
+    //       .style('left', d3.event.pageX + 'px')
+    //       .style('top', d3.event.pageY + 'px')
+    //       .style('font-size', 11.5)
+    //       .selectAll()
+    //       .data(nestedData).enter() // for each vehicle category, list out name and price of premium
+    //       .append('div')
+    //       // .style('color', d => {
+    //       //   return color(d.key)
+    //       // })
+    //       .style('font-size', 10)
+    //       .html(d => {
+    //         let xMBT = xScale.invert(mouse[0])
+    //         let bisect = d3.bisector(function (d) { return d.MBT; }).left
+    //         let idx = bisect(d.values, xMBT)
+    //         return `rate: ${d.values[idx].q}`
+    //       })
+    // },
+
     setSliderExtremeThenSliderValue (value, setVal, plotType, valueType) {
     	if  (plotType === 'productionPlot') {
         this.productionPlotSliderParams[valueType] = value;
-      } else  {
+      } else if (plotType === 'rtaPlot') {
         this.rtaPlotSliderParams[valueType] = value;
+      } else if (plotType === 'rnpPlot') {
+        this.rnpPlotSliderParams[valueType] = value;
       }
       this.$nextTick(() => {
       	this.$refs.slider.setValue(setVal)
@@ -331,9 +617,12 @@ export default {
       });
 
       return Math.min(...minArr);
-    }
+    }         
+    
+
 
   }
+  
 }
 </script>
 
