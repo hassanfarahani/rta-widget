@@ -65,6 +65,27 @@
                     </vue-slider>
                 </div>
               </div>
+
+              <div id="sqrt-plot">
+                
+                <div class="sliderRange">
+                    <label class="labeltext">
+                      SQRT(t) (day^0.5): <em>{{ sqrtPlotSliderParams.sliderValues[0] }} - {{ sqrtPlotSliderParams.sliderValues[1] }}</em>
+                    </label> 
+                    <vue-slider 
+                        ref="slider"
+                        v-model="sqrtPlotSliderParams.sliderValues" 
+                        :min="sqrtPlotSliderParams.min" 
+                        :max="sqrtPlotSliderParams.max" 
+                        @change="reRenderPlotByUpdatedSliderValues('sqrtPlot')"
+                        :interval="1"
+                        :enable-cross="false">
+                        <template v-slot:dot="{ value, focus }">
+                          <div :class="['custom-dot', { focus }]"></div>
+                        </template>
+                    </vue-slider>
+                </div>
+              </div>
             </div>
         </div>
     </div>
@@ -80,9 +101,10 @@ export default {
       width:500,
       height: 400,
       margin: {left: 70, top:20, right:20, bottom: 60},
-      productionPlotSliderParams : {min: 0, max: 500, sliderValues: [0, 500]},
-      rtaPlotSliderParams : {min: 0, max: 300, sliderValues: [0, 300]},
-      rnpPlotSliderParams : {min: 0, max: 400, sliderValues: [0, 400]}
+      productionPlotSliderParams : {min: 2, max: 3, sliderValues: [2, 3]},
+      rtaPlotSliderParams : {min: 2, max: 3, sliderValues: [2, 3]},
+      rnpPlotSliderParams : {min: 2, max: 3, sliderValues: [2, 3]},
+      sqrtPlotSliderParams : {min: 5, max: 6, sliderValues: [5, 6]}
     }
   },
   computed: {
@@ -103,6 +125,9 @@ export default {
     },
     rnpPlotSliderValues() {
       return this.$store.getters.rnpPlotSliderValues;
+    },
+    sqrtPlotSliderValues() {
+      return this.$store.getters.sqrtPlotSliderValues;
     }
   },
   watch: {
@@ -112,33 +137,63 @@ export default {
       this.updateInitVis('#rta-plot', 'rtaPlot', val);
 
       this.updateInitVis('#rnp-plot', 'rnpPlot', val);
+
+      this.updateInitVis('#sqrt-plot', 'sqrtPlot', val);
     },
     productionPlotSliderValues(updatedSliderValues) {
-      console.log('pp plot slider updated')
+      // console.log('pp plot slider updated')
       let productionPlotData = this.filterDatabyPlotTypeParams('time', 'q', this.plotsParams);      
       let selectedProductionPlotData = this.filterDataByUpdatedSliderValues(productionPlotData, updatedSliderValues,'time');
       this.updateInitVis('#production-plot', 'productionPlot', selectedProductionPlotData);
     },
     rtaPlotSliderValues(updatedSliderValues) {
-      console.log('rta plot slider updated')
+      // console.log('rta plot slider updated')
       let rtaPlotData = this.filterDatabyPlotTypeParams('MBT', 'q', this.plotsParams);
       let selectedRtaPlotData = this.filterDataByUpdatedSliderValues(rtaPlotData, updatedSliderValues,'MBT');
       this.updateInitVis('#rta-plot', 'rtaPlot', selectedRtaPlotData);
     },
     rnpPlotSliderValues(updatedSliderValues) {
-      console.log('rnp plot slider updated')
+      // console.log('rnp plot slider updated')
       let rnpPlotData = this.filterDatabyPlotTypeParams('MBT', 'RNP', this.plotsParams);
       let selectedRnpPlotData = this.filterDataByUpdatedSliderValues(rnpPlotData, updatedSliderValues,'MBT');
       this.updateInitVis('#rnp-plot', 'rnpPlot', selectedRnpPlotData);
+    },
+    sqrtPlotSliderValues(updatedSliderValues) {
+      // console.log('sqrt plot slider updated')
+      let sqrtPlotData = this.filterDatabyPlotTypeParams('t_sqrt', 'RNP', this.plotsParams);
+      let selectedSqrtPlotData = this.filterDataByUpdatedSliderValues(sqrtPlotData, updatedSliderValues,'t_sqrt');
+      this.updateInitVis('#sqrt-plot', 'sqrtPlot', selectedSqrtPlotData);
     }
 
-  },  
+  }, 
+  created() {
+    // let initialRangeSlidersValues = this.$store.getters.initialRangeSlidersValues;
+    // const plotTypeArray = ['productionPlot', 'rtaPlot', 'rnpPlot'];
+    // plotTypeArray.forEach(plotType => {
+    //   this.setSliderExtremeThenSliderValue(Math.floor(initialRangeSlidersValues[plotType][0]), [initialRangeSlidersValues[plotType][0], this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
+    //   this.setSliderExtremeThenSliderValue(Math.ceil(initialRangeSlidersValues[plotType][1]), [this[`${plotType}SliderParams`].sliderValues[0], initialRangeSlidersValues[plotType][1]], plotType, 'max');
+    // }) 
+
+    // this.productionPlotSliderParams.min = initialRangeSlidersValues.productionPlot[0];
+    // this.productionPlotSliderParams.max = initialRangeSlidersValues.productionPlot[1];
+    // this.productionPlotSliderParams.sliderValues = [initialRangeSlidersValues.productionPlot[0], initialRangeSlidersValues.productionPlot[1]];
+
+    // this.rtaPlotSliderParams.min = initialRangeSlidersValues.rtaPlot[0];
+    // this.rtaPlotSliderParams.max = initialRangeSlidersValues.rtaPlot[1];
+    // this.rtaPlotSliderParams.sliderValues = [initialRangeSlidersValues.rtaPlot[0], initialRangeSlidersValues.rtaPlot[1]];
+
+    // this.rnpPlotSliderParams.min = initialRangeSlidersValues.rnpPlot[0];
+    // this.rnpPlotSliderParams.max = initialRangeSlidersValues.rnpPlot[1];
+    // this.rnpPlotSliderParams.sliderValues = [initialRangeSlidersValues.rnpPlot[0], initialRangeSlidersValues.rnpPlot[1]];
+  },
   mounted() {
     this.initVis('#production-plot', 'productionPlot', this.plotsParams);
 
     this.initVis('#rta-plot', 'rtaPlot', this.plotsParams);  
 
     this.initVis('#rnp-plot', 'rnpPlot', this.plotsParams);  
+
+    this.initVis('#sqrt-plot', 'sqrtPlot', this.plotsParams);  
   },
   methods: {
     reRenderPlotByUpdatedSliderValues(plotType) {
@@ -173,6 +228,7 @@ export default {
         let singlePlotsParams = dataArr.filter(obj => obj[xAxisParam] >= updatedSliderValues[0] && obj[xAxisParam] <= updatedSliderValues[1]);
         selectedPlotTypeData.push(singlePlotsParams);
       })
+      // console.log('filtered data p-p:', selectedPlotTypeData)
       return selectedPlotTypeData;
     },
     // Adding the new plot (generated from the new user inputs) to the existing plots on the page
@@ -211,11 +267,12 @@ export default {
         }
 
     },
-    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType) {
+    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel) {
 
         const colorScale = d3.scaleOrdinal(d3.schemeCategory10); // set color scale range
         colorScale.domain(data.map((d, index) => index)); // set color domain
 
+        
         // Update axes
         xAxisCall.scale(xScale);
         xAxis.call(xAxisCall)
@@ -224,58 +281,160 @@ export default {
         yAxis.call(yAxisCall);
 
          // Update our line path
-        g.selectAll('.line').data(data)
+        const lineN = g.selectAll('.line').data(data)
           .enter().append('path')
             .attr('class', 'line')
             .attr('fill', 'red')
             .attr('d', pathGenerator)
             .attr('stroke', (d, index) => colorScale(index));
 
+        // line chart animation
+        let totalLength = [];
+        lineN._groups[0].forEach(path => {
+          totalLength.push(path.getTotalLength());
+        });
+
+        lineN._groups[0].forEach((path, i) => {
+          d3.select(path)
+            .attr('stroke-dasharray', totalLength[i] + ' ' + totalLength[i])
+            .attr('stroke-dashoffset', totalLength[i])
+            .transition()
+              .duration(1000)
+              // .ease('linear')
+              .attr("stroke-dashoffset", 0);
+        });
+
         // insertion of end of linear flow time line into the plots
-        this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g);        
+        this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel);  
+        
+        // add tooltip to the plot when user hover 
+        this.addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam)
     },
     // add a vertical line to each plot to show the end of linear flow time
-    addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g) {
-      let xAxisLabel;
-      let yAxisLabel;
-      let verticalLineLabel;
-      if (plotType === 'productionPlot') {
-        xAxisLabel = 'time';
-        yAxisLabel = 'q';
-        verticalLineLabel = 'telf';
-      } else if (plotType === 'rtaPlot') {
-        xAxisLabel = 'MBT';
-        yAxisLabel = 'q';
-        verticalLineLabel = 'MBTelf';
-      } else if (plotType === 'rnpPlot') {
-        xAxisLabel = 'MBT';
-        yAxisLabel = 'RNP';
-        verticalLineLabel = 'MBTelf';
-      }
+    addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel) {
+
       const distanceFromCurve = 5;
         data.forEach(dataSet => {
+              // check to make sure end of linear flow line is in the range of x axis 
+              if (dataSet[0].endOfLinearFlowParams[xAxisParam] <= dataSet[0][xAxisParam] ) {
+                return
+              } else {
               g.append('line')
-                .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel]))
-                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel]))
-                .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisLabel]))
+                .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                .transition().duration(1000)
+                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
                 .attr('y2', this.innerHeight)
                 .attr('stroke', 'green')
                 .style('stroke-dasharray', ('3, 3'));
               
               g.append('text')
-                .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisLabel]}`)
+                .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
                   .attr('fill', 'black')
-                  .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisLabel])}`)
-                  .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisLabel]) - distanceFromCurve}` )
+                  .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
+                  .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
                   .attr('text-anchor', 'start')
                   .attr('font-size', '0.8rem')
                   .attr('font-style', 'italic')
                   .style('fill', 'maroon') 
+              }
         })
+    },
+    addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam) { 
+      
+            let bisect = d3.bisector(d => d[xAxisParam]).left;
+
+            let focus = g.append("g")
+              .attr("class", "focus")
+              .style("display", "none");            
+              
+
+            focus.append("line")
+                .attr("class", "x-hover-line hover-line")
+                .attr("y1", 0)
+                .attr("y2", -this.innerHeight);
+
+            focus.append("line")
+                .attr("class", "y-hover-line hover-line")
+                .attr("x1", 0)
+                .attr("x2", this.innerWidth);
+
+            focus.append("circle")
+                .attr("r", 7.5);
+            
+            focus.append("rect")
+              .attr("class", "tooltip")
+              .attr("width", 150)
+              .attr("height", 50)
+              .attr("x", 20)
+              .attr("y", -22)
+              .attr("rx", 4)
+              .attr("ry", 4);
+
+            focus.append("text")
+                .attr("class", "tooltip-x")
+                .attr("x", 28)
+                .attr("y", -2);  
+
+            focus.append("text")
+                .attr("class", "tooltip-y")
+                .attr("x", 28)
+                .attr("y", 18); 
+
+            let y2 = this.innerHeight;
+
+            g.append("rect")
+                .attr("class", "overlay")
+                .attr("width", this.innerWidth)
+                .attr("height", this.innerHeight)
+                .on("mouseover", () => focus.style("display", null))
+                .on("mouseout", () => focus.style("display", "none"))
+                .on("mousemove", mousemove);
+
+            function mousemove() {
+                let x0 = xScale.invert(d3.mouse(this)[0])
+                  let i = bisect(data[0], x0)
+                  let d0 = data[0][i - 1]
+                  let d1 = data[0][i]
+                  let d = x0 - d0[xAxisParam] > d1[xAxisParam] - x0 ? d1 : d0;
+                focus.attr('transform', `translate(${xScale(d[xAxisParam])}, ${yScale(d[yAxisParam])})`);
+                focus.select('.tooltip-x').text(`${xAxisParam} = ${d[xAxisParam]}`);
+                focus.select('.tooltip-y').text(`${yAxisParam} = ${d[yAxisParam]}`);
+                focus.select('.x-hover-line').attr('y2', y2 - yScale(d[yAxisParam]) );
+                focus.select('.y-hover-line').attr('x2', -xScale(d[xAxisParam]));
+    
+            }
+    },
+    updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel) {
+        // x label & y label
+        xLabel.text(xAxisLabel);
+        yLabel.text(yAxisLabel);
+
+        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+        let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(dataArrayWithNoZeroLengthItem, xAxisParam, yAxisParam);
+
+        if (xAxisExtremse[1] >= this[`${plotType}SliderParams`].max) {
+          this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this[`${plotType}SliderParams`].sliderValues[0] , xAxisExtremse[1]], plotType, 'max');
+        }
+
+        if (xAxisExtremse[0] <= this[`${plotType}SliderParams`].min) {
+          this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
+        }
+
+        // Path generator
+        let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
+
+        xScale.domain(xAxisExtremse);
+        yScale.domain(yAxisExtremse);
+
+        // update axes & line path
+        this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel);
     },
     // this method is called to dispaly all the plots with default values in the input section of the page when the page first loaded
     initVis(parentElement, plotType, data) {
-      console.log('plot type :', plotType)
+      // console.log('plot type :', plotType)
       // Creating & Adding svg to the page
       let svgIdPart = this.createSvgIdPart(parentElement);
 
@@ -298,14 +457,14 @@ export default {
           xScale = d3.scaleLinear().range([0, this.innerWidth]);
           yScale = d3.scaleLinear().range([this.innerHeight, 0]);
 
-      } else if (plotType === 'rtaPlot') {
+      } else if (plotType === 'rtaPlot' || plotType === 'sqrtPlot') {
           xScale = d3.scaleLog().range([0, this.innerWidth]);
           yScale = d3.scaleLog().range([this.innerHeight, 0]); 
       } 
 
       // X-axis
       const xAxisCall = d3.axisBottom()
-          .ticks(3, ",f")
+          .ticks(10, ",f")
           .tickFormat(d3.format(",.0f"));
     
       const xAxis = g.append('g')
@@ -323,280 +482,76 @@ export default {
       let xLabel = g.append("text")
           .attr("y", this.innerHeight + 50)
           .attr("x", this.innerWidth/2)
-          .attr("font-size", "20px")
+          .attr("font-size", "15px")
+          .attr("font-style", "italic")
           .attr("text-anchor", "middle")
           // .text("Time");
       let yLabel = g.append("text")
           .attr("transform", "rotate(-90)")
           .attr("y", -40 )
           .attr("x", -this.innerHeight/2)
-          .attr("font-size", "20px")
+          .attr("font-size", "15px")
+          .attr("font-style", "italic")
           .attr("text-anchor", "middle")
           // .text("Rate")
 
-      // const t = () => d3.transition().duration(1000);     
+      let xAxisLabel; // x axis label of each plot
+      let yAxisLabel; // y axis label of each plot
+      let xAxisParam; // x axis property value (time, MBT or sqrt(t) ) in the data object
+      let yAxisParam; // y axis property value (q, RNP ) in the data object
+      let verticalLineLabel;
 
-      
-        // Update scales
-        if (plotType === 'productionPlot') {
-            // x label & y label
-            xLabel.text('Time');
-            yLabel.text('Rate');
-
-            // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-            let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(data, 'time', 'q');
-
-            if (xAxisExtremse[1] >= this.productionPlotSliderParams.max) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this.productionPlotSliderParams.sliderValues[0] , xAxisExtremse[1]], 'productionPlot', 'max');
-            }
-
-            if (xAxisExtremse[0] <= this.productionPlotSliderParams.min) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this.productionPlotSliderParams.sliderValues[1]], 'productionPlot', 'min');
-            }
-
-            // Path generator
-            let pathGenerator = this.lineGenerator('time', 'q', xScale, yScale);
-
-            xScale.domain(xAxisExtremse);
-            yScale.domain(yAxisExtremse);
-
-            // update axes & line path
-            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'productionPlot');
-
-
-        } else if (plotType === 'rtaPlot') {
-            // x label & y label
-            xLabel.text('MBT');
-            yLabel.text('Rate');
-
-            // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-            let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(data, 'MBT', 'q');
-
-            if (xAxisExtremse[0] < this.rtaPlotSliderParams.min) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0], this.rtaPlotSliderParams.sliderValues[1]], 'rtaPlot', 'min');
-            }
- 
-            if (xAxisExtremse[1] > this.rtaPlotSliderParams.max) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this.rtaPlotSliderParams.sliderValues[0] ,xAxisExtremse[1]], 'rtaPlot', 'max');
-            }
-
-            // Path generator
-            let pathGenerator = this.lineGenerator('MBT', 'q', xScale, yScale);
-
-            xScale.domain(xAxisExtremse);
-            // x.domain([0, 10000]);
-            yScale.domain(yAxisExtremse);
-
-            // update axes & line path
-            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'rtaPlot');
-
-
-            // tooltip ----------------------------------------------------------------------------
-            // tooltip ----------------------------------------------------------------------------
-
-          //   let updatedData = [];
-          //   data.forEach((dataItem, i) => {
-          //     let updatedDataItem = [];
-          //     dataItem.forEach(obj => {
-          //       obj = {...obj, index: String(i)}
-          //       updatedDataItem.push(obj)
-          //     });
-          //     updatedData.push(updatedDataItem)
-          //   })
-          //   console.log('updated data: ', updatedData)
-
-          //   let nestedData = [];
-          //   updatedData.forEach((dataItem, i) => {
-          //     let obj = {key: String(i), values: dataItem};
-          //     nestedData.push(obj)
-          //   })
-
-
-          //   console.log('nested data', nestedData)
-
-          //   let lineStroke = '3px';
-
-          //   let tooltip = d3.select("#rta-plot").append("div")
-          //     .attr('id', 'tooltip')
-          //     .style('position', 'absolute')
-          //     .style("background-color", "#D3D3D3")
-          //     .style('padding', 6)
-          //     .style('display', 'none')
-
-          //   let mouseG = g.append("g")
-          //     .attr("class", "mouse-over-effects");
-
-          //   mouseG.append("path") // create vertical line to follow mouse
-          //     .attr("class", "mouse-line")
-          //     .style("stroke", "#A9A9A9")
-          //     .style("stroke-width", lineStroke)
-          //     .style("opacity", "0");
-
-          //   // let lines = document.getElementsByClassName('line');
-
-          //   let mousePerLine = mouseG.selectAll('.mouse-per-line')
-          //     .data(nestedData)
-          //     .enter()
-          //     .append("g")
-          //     .attr("class", "mouse-per-line");
-
-          //   mousePerLine.append("circle")
-          //     .attr("r", 4)
-          //     // .style("stroke", function (d) {
-          //     //   return color(d.key)
-          //     // })
-          //     .style("fill", "red")
-          //     .style("stroke-width", lineStroke)
-          //     .style("opacity", "0");
-
-          //     let heightInner = this.innerHeight;
-          //     let self = this;
-
-
-          // mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
-          //   .attr('width', this.innerWidth) 
-          //   .attr('height', this.innerHeight)
-          //   .attr('fill', 'none')
-          //   .attr('pointer-events', 'all')
-          //   .on('mouseout', function () { // on mouse out hide line, circles and text
-          //     d3.select(".mouse-line")
-          //       .style("opacity", "0");
-          //     d3.selectAll(".mouse-per-line circle")
-          //       .style("opacity", "0");
-          //     d3.selectAll(".mouse-per-line text")
-          //       .style("opacity", "0");
-          //     d3.selectAll("#tooltip")
-          //       .style('display', 'none')
-
-          //   })
-          //   .on('mouseover', function () { // on mouse in show line, circles and text
-          //     d3.select(".mouse-line")
-          //       .style("opacity", "1");
-          //     d3.selectAll(".mouse-per-line circle")
-          //       .style("opacity", "1");
-          //     d3.selectAll("#tooltip")
-          //       .style('display', 'block')
-          //   })
-          //   .on('mousemove', function () { // update tooltip content, line, circles and text when mouse moves
-          //     let mouse = d3.mouse(this)
-
-          //     d3.selectAll(".mouse-per-line")
-          //       .attr("transform", function (d, i) {
-          //         let xMBT = xScale.invert(mouse[0]) // use 'invert' to get date corresponding to distance from mouse position relative to svg
-          //         let bisect = d3.bisector(function (d) { return d.MBT; }).left // retrieve row index of date on parsed csv
-          //         let idx = bisect(d.values, xMBT);
-
-
-          //         d3.select(".mouse-line")
-          //           .attr("d", function () {
-          //             let data = "M" + xScale(d.values[idx].MBT) + "," + (heightInner);
-          //             data += " " + xScale(d.values[idx].MBT) + "," + 0;
-
-          //             return data;
-          //           });
-
-          //         return "translate(" + xScale(d.values[idx].MBT) + "," + yScale(d.values[idx].q) + ")";
-
-          //       });
-
-          //       self.updateTooltipContent(mouse, nestedData, xScale, tooltip)
-
-          //   });
-
-          // -------------- tooltip ----------------------------------------------------------------------------
-          // -------------- tooltip ----------------------------------------------------------------------------
-
-                      
-
-        } else if (plotType === 'rnpPlot') {
-            // x label & y label
-            xLabel.text('MBT');
-            yLabel.text('(Pi - Pwf)/q');
-
-            // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-            let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(data, 'MBT', 'RNP');
-
-            if (xAxisExtremse[0] < this.rnpPlotSliderParams.min) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0], this.rnpPlotSliderParams.sliderValues[1]], 'rnpPlot', 'min');
-            }
- 
-            if (xAxisExtremse[1] > this.rnpPlotSliderParams.max) {
-              this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this.rnpPlotSliderParams.sliderValues[0] ,xAxisExtremse[1]], 'rnpPlot', 'max');
-            }
-
-            // Path generator
-            let pathGenerator = this.lineGenerator('MBT', 'RNP', xScale, yScale);
-
-            xScale.domain(xAxisExtremse);
-            // x.domain([0, 10000]);
-            yScale.domain(yAxisExtremse);
-
-            // update axes & line path
-            this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, 'rnpPlot');
-        }
-  
-            
-    },
-    // updateTooltipContent(mouse, nestedData, xScale, tooltip) {
-    //     // --------------------------- updata function
-    //     let sortingObj = []
-
-    //     nestedData.map(d => {
-    //       let xMBT = xScale.invert(mouse[0])
-    //       let bisect = d3.bisector(d => d.MBT).left;
-    //       console.log('bisect: ', bisect)
-    //       let idx = bisect(d.values, xMBT);
-    //       sortingObj.push({
-    //         index: d.values[idx].index,
-    //         q: d.values[idx].q, 
-    //         MBT: d.values[idx].MBT
-    //       })
-    //     });
-
-    //     sortingObj.sort(function(x, y){
-    //       return d3.descending(x.q, y.q);
-    //     })
-
-    //     // var sortingArr = sortingObj.map(d=> d.key)
-
-    //     // var nestedData1 = nestedData.slice().sort(function(a, b){
-    //     //   return sortingArr.indexOf(a.key) - sortingArr.indexOf(b.key) // rank vehicle category based on price of premium
-    //     // })
-
-    //     // tooltip.html(sortingObj[0].month + "-" + sortingObj[0].year + " (Bidding No:" + sortingObj[0].bidding_no + ')')
-
-    //     tooltip
-    //     .html(`rate: ${sortingObj[0].q}`)
-    //       .style('display', 'block')
-    //       .style('left', d3.event.pageX + 'px')
-    //       .style('top', d3.event.pageY + 'px')
-    //       .style('font-size', 11.5)
-    //       .selectAll()
-    //       .data(nestedData).enter() // for each vehicle category, list out name and price of premium
-    //       .append('div')
-    //       // .style('color', d => {
-    //       //   return color(d.key)
-    //       // })
-    //       .style('font-size', 10)
-    //       .html(d => {
-    //         let xMBT = xScale.invert(mouse[0])
-    //         let bisect = d3.bisector(function (d) { return d.MBT; }).left
-    //         let idx = bisect(d.values, xMBT)
-    //         return `rate: ${d.values[idx].q}`
-    //       })
-    // },
-
-    setSliderExtremeThenSliderValue (value, setVal, plotType, valueType) {
-    	if  (plotType === 'productionPlot') {
-        this.productionPlotSliderParams[valueType] = value;
-      } else if (plotType === 'rtaPlot') {
-        this.rtaPlotSliderParams[valueType] = value;
-      } else if (plotType === 'rnpPlot') {
-        this.rnpPlotSliderParams[valueType] = value;
+      if (plotType === 'productionPlot') {
+        xAxisLabel = 'Time (days)';
+        yAxisLabel = 'Rate (STBD)';
+        xAxisParam = 'time';
+        yAxisParam = 'q';
+        verticalLineLabel = 't@elf';
       }
-      this.$nextTick(() => {
-      	this.$refs.slider.setValue(setVal)
-      })
+
+      if (plotType === 'rtaPlot') {
+        xAxisLabel = 'MBT (1/day)';
+        yAxisLabel = 'Rate (STBD)';
+        xAxisParam = 'MBT';
+        yAxisParam = 'q';
+        verticalLineLabel = 'MBT@elf';
+      }
+
+      if (plotType === 'rnpPlot') {
+        xAxisLabel = 'MBT (1/day)';
+        yAxisLabel = '(Pi - Pwf)/q';
+        xAxisParam = 'MBT';
+        yAxisParam = 'RNP';
+        verticalLineLabel = 'MBT@elf';
+      }
+
+      if (plotType === 'sqrtPlot') {
+        xAxisLabel = 'sqrt(t)';
+        yAxisLabel = '(Pi - Pwf)/q';
+        xAxisParam = 't_sqrt';
+        yAxisParam = 'RNP';
+        verticalLineLabel = 'SQRT(t)@elf';
+      }
+
+      // const t = () => d3.transition().duration(1000);    
+
+        // data = [[{}, ..], [{}, ..], ...]
+        // elimination of the items in the data array, which has zero length due to the range of x-axis values that user select by the range slider
+        let dataArrayWithNoZeroLengthItem = [];
+        data.forEach(dataArr => {
+          if (dataArr.length !== 0) {
+            dataArrayWithNoZeroLengthItem.push(dataArr);
+          }
+        });
+          
+        this.updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel);          
+    },
+    setSliderExtremeThenSliderValue (value, setVal, plotType, valueType) {
+
+      this[`${plotType}SliderParams`][valueType] = value;
+      // this.$nextTick(() => {
+      // 	this.$refs.slider.setValue(setVal);
+      // })
     },
     // find the maximum of any object key (time, q, MBT, ...) in the data array ===> data = [ [...], [...], ...]
     findMax(data, key) {

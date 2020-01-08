@@ -43,7 +43,7 @@
                         <input type="text" class="user-input"  v-model="userInputs[1].permeability" @input="changeSliderColor">
                     </div>
                     <div class="property-slider">
-                        <input type="range" :min="slidersRange[1].permeability[0]" :max="slidersRange[1].permeability[1]" step="0.01" id="permeability" class="slider"
+                        <input type="range" :min="slidersRange[1].permeability[0]" :max="slidersRange[1].permeability[1]" step="0.001" id="permeability" class="slider"
                         v-model="userInputs[1].permeability" @input="changeSliderColor" :style="{ background: color[1]}">
                     </div>
 
@@ -174,12 +174,14 @@
             <div class="output-box-parameters">
                 <div class="properties-title">Calculated Parameters</div>
                 <div class="calculated-parameters">
-                    <div>N<sub>vol</sub> (STB)</div>
-                    <div>{{ volumetricHCInPlace }}</div>
-                    <div>N <sub>FMB</sub> (STB)</div>
-                    <div>{{ hcInPlaceFromRNPPlot }}</div>
-                    <div>t <sub>elf</sub> (days)</div>
+                    <div class="tooltip">t <sub>elf</sub> (days) <span class="tooltiptext">end of linear flow time</span></div>
                     <div>{{ endOfHalfSlopeLineTime }}</div>
+                    <div class="tooltip">N<sub>vol</sub> (STB) <span class="tooltiptext">volumetric hydrocarbon in place</span></div>
+                    <div>{{ volumetricHCInPlace }}</div>
+                    <div class="tooltip">N <sub>FMB</sub> (STB) <span class="tooltiptext">hydrocarbon in place calculated from flowing material balance (FMB) plot</span></div>
+                    <div>{{ hcInPlaceFromRNPPlot }}</div>
+                    <div class="tooltip"> error (%): <span class="tooltiptext">FMB hydrocarbon in place calculation error</span> </div>
+                    <div> {{ (Math.abs((volumetricHCInPlace - hcInPlaceFromRNPPlot) / volumetricHCInPlace ) * 100).toFixed(2) }} </div>
                 </div>
             </div>
 
@@ -201,8 +203,8 @@ export default {
             userInputs: [
                 { porosity: 0.01 },
                 { permeability: 0.002 },
-                { fracHalfLength: 100 },
-                { fracHeight: 100 },
+                { fracHalfLength: 50 },
+                { fracHeight: 50 },
                 { fracSpacing: 100 },
                 { fracNum: 1 },
                 { compressibility: 5E-05 },
@@ -215,16 +217,16 @@ export default {
             // min & max values of each property
             slidersRange: [
                 { porosity: [0, 1] },
-                { permeability: [0, 1] },
-                { fracHalfLength: [1, 200] },
-                { fracHeight: [1, 200] },
-                { fracSpacing: [1, 200] },
+                { permeability: [0.001, 0.01] },
+                { fracHalfLength: [10, 200] },
+                { fracHeight: [10, 200] },
+                { fracSpacing: [15, 200] },
                 { fracNum: [1, 100] },
                 { compressibility: [1E-06, 200E-05] },
                 { resPressure: [100, 10000] },
                 { flowingWellPressure: [100, 10000] },
                 { FVF: [0, 2] },
-                { viscosity: [0, 10] },
+                { viscosity: [0, 1] },
                 { rate: [0, 10] }
             ],
         }
@@ -234,7 +236,7 @@ export default {
         color() {
             return this.$store.getters.defColors;         
         },
-        getData() {
+        defaultInputDataValues() {
             return {
                 porosity: this.userInputs[0].porosity,
                 permeability: this.userInputs[1].permeability,
@@ -261,7 +263,7 @@ export default {
         },
         hcInPlaceFromRNPPlot() {
             const slope = this.$store.getters.rnpPlotSlope;
-            const mbtHcInPlace = 1 / (slope * this.userInputs[6].compressibility)
+            const mbtHcInPlace = 1 / (slope * this.userInputs[6].compressibility) * this.userInputs[5].fracNum;
             return mbtHcInPlace.toFixed(2);
         }
     },
@@ -270,13 +272,24 @@ export default {
         const colorData = { userInputs: this.userInputs, slidersRange: this.slidersRange };
         this.$store.dispatch('getColorSliders', colorData);
 
-        this.$store.dispatch('getCalcPlotsParams', this.getData);
+        this.$store.dispatch('getCalcPlotsParams', this.defaultInputDataValues);
     },
     methods: {
         // slider background color when the user change the slider
         changeSliderColor(e) { 
             const data = { userInputs: this.userInputs, slidersRange: this.slidersRange };
-            this.$store.dispatch('getColorSliders', data);            
+            this.$store.dispatch('getColorSliders', data);
+            
+            // const fractureData = {
+            //     fractureSpacing: this.userInputs[4].fracSpacing,
+            //     fractureHalfLength: this.userInputs[2].fracHalfLength,
+            //     fractureHeight: this.userInputs[3].fracHeight,
+            //     fractureFrequency: this.userInputs[5].fracNum
+            // };
+            // this.$store.dispatch('getFractureData', fractureData);
+            this.$store.dispatch('getFractureSpacing', this.userInputs[4].fracSpacing);
+            this.$store.dispatch('getFractureHalfLength', this.userInputs[2].fracHalfLength);
+
         },
         calcPlotsParams() {
             //quality check of the user input data

@@ -17,13 +17,13 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 14px;
     color: #000;
-    background-color: #a1b5a1;
+    background-color: #9c9c9c;
 }
 
 .main-wrapper {
     display: grid;
     grid-template-columns: 1fr;
-    grid-gap: 0.5rem;
+    grid-gap: 1.5rem;
     margin: 1rem;    
 }
 
@@ -35,7 +35,7 @@ body {
 }
 
 .header h1 {
-    background-color: #c4c4c4;
+    background-color: #facc9d;
     padding: 0.3rem;
 }
 
@@ -52,8 +52,8 @@ body {
     display: grid;
     grid-template-columns: 1fr;
     /* grid-auto-rows: auto; */
-    grid-row-gap: 0.5rem;
-    height: fit-content;
+    grid-row-gap: 1.5rem;
+    /* height: fit-content; */
 }
 
 
@@ -66,15 +66,16 @@ body {
 
 .inputs-box, .schematic-box, .plots-box {
     margin: 0.5rem;
-    border: 3px solid #dff0d8;
+    border: 3px solid #facc9d;
     border-radius: 0.3rem;
 }
 
 .inputs-box-header, .schematic-box-header, .plots-box-header {
-    background-color: #dff0d8;
+    background-color: #facc9d;
     padding: 0.5rem 1rem;
-    color: #3c763d;
+    color: #000;
     font-size: 1.2rem;
+    font-weight: bold;
 }
 
 .calculation {
@@ -184,8 +185,8 @@ body {
 }
 
 .properties-title {
-    background-color: #c4c4c4;
-    color: #fff;
+    background-color: #86f7d9;
+    color: #000;
     padding: 0.2rem 0.5rem;    
 }
 
@@ -227,6 +228,7 @@ body {
 
 .slider:hover {
     opacity: 1;
+    cursor: pointer;
 }
 
 /* -- google chrome -- */
@@ -235,7 +237,7 @@ body {
     appearance: none;
     width: 0.5rem;
     height: 1.3rem;
-    background: red;
+    background: #8b8c8c;
     border-radius: 2rem;
     cursor: pointer;
 }
@@ -252,14 +254,15 @@ body {
 /* ------ output ----- */
 .output-box {
     margin: 0.5rem;
-    border: 3px solid #dff0d8;
+    border: 3px solid #facc9d;
     border-radius: 0.3rem;
 }
 .output-box-header {
-    background-color: #dff0d8;
+    background-color: #facc9d;
     padding: 0.5rem 1rem;
-    color: #3c763d;
+    color: #000;
     font-size: 1.2rem;
+    font-weight: bold;
 }
 
 .output-box-parameters {
@@ -277,8 +280,9 @@ body {
 
 .calculated-parameters {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:1fr 1fr;
     grid-column-gap: 0.5rem;
+    /* border-bottom: 1px solid black; */
 }
 
 .calculated-parameters div {
@@ -329,7 +333,10 @@ body {
 
 /* ------------------------------------------------ schematic ---------------------------------------------- */
 /* ------------------------------------------------ -------------------------------------------------------- */
-
+.schematic-box-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
 
 
 
@@ -344,9 +351,9 @@ body {
     justify-items: center;
 }
 
-#production-plot, #rta-plot, #rnp-plot {
+#production-plot, #rta-plot, #rnp-plot, #sqrt-plot {
     width: 100%;
-    border: 5px solid #dff0d8;
+    border: 5px solid #facc9d;
 }
 
 .line {
@@ -359,7 +366,7 @@ body {
   
 /* -----------d3 tooltip --------- */
 
-/* .overlay {
+.overlay {
     fill: none;
     pointer-events: all;
 }
@@ -386,7 +393,17 @@ body {
     stroke: #777;
     stroke-width: 20px;
     stroke-dasharray: 3,3;
-  } */
+  }
+
+.tooltip {
+    fill: white;
+    stroke: #facc9d;
+    fill: #facc9d;
+}
+
+.tooltip-x, .tooltip-y {
+    font-weight: bold;
+}
 
 /*  --------------- dual range slider ------------------ */
 .sliderRange {
@@ -399,14 +416,16 @@ body {
     width: 100%;
     height: 100%;
     border-radius: 0;
-    background-color: pink;
+    background-color: rgb(245, 153, 32);
     transition: all .3s;
   }
   .custom-dot:hover {
     transform: rotateZ(45deg);
+    cursor: pointer;
   }
   .custom-dot.focus {
     border-radius: 50%;
+    background-color: #84f542;
   }
 
 /*  --------------------------------------------------------- media queries ---------------------------------------------------- */
