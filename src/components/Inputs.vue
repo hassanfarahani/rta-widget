@@ -183,9 +183,7 @@
                     <div class="tooltip"> error (%): <span class="tooltiptext">FMB hydrocarbon in place calculation error</span> </div>
                     <div> {{ (Math.abs((volumetricHCInPlace - hcInPlaceFromRNPPlot) / volumetricHCInPlace ) * 100).toFixed(2) }} </div>
                 </div>
-            </div>
-
-            
+            </div>          
 
 
         </div>
@@ -289,7 +287,6 @@ export default {
             // this.$store.dispatch('getFractureData', fractureData);
             this.$store.dispatch('getFractureSpacing', this.userInputs[4].fracSpacing);
             this.$store.dispatch('getFractureHalfLength', this.userInputs[2].fracHalfLength);
-
         },
         calcPlotsParams() {
             //quality check of the user input data
@@ -307,9 +304,7 @@ export default {
                 FVF: parseFloat(this.userInputs[9].FVF),
                 viscosity: parseFloat(this.userInputs[10].viscosity),
                 rate: parseFloat(this.userInputs[11].rate)
-            }
-
-
+            };
             
             // console.log(newData)
             

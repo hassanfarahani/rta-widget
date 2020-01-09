@@ -6,7 +6,8 @@
         <Inputs />
         <div class="schematic-plots">
           <Schematic />
-          <Plots />
+          <PlotsHeader />
+          <!-- <router-view></router-view> -->
         </div>
       </div>
     </div>   
@@ -18,7 +19,9 @@ import '@/assets/css/styles.css'
 import Header from '@/components/Header.vue'
 import Inputs from '@/components/Inputs.vue'
 import Schematic from '@/components/Schematic.vue'
-import Plots from '@/components/Plots.vue'
+import ProductionPlots from '@/components/ProductionPlots.vue'
+import RnpPlots from '@/components/RnpPlots.vue'
+import PlotsHeader from '@/components/PlotsHeader.vue'
 
 export default {
   name: 'App',
@@ -26,7 +29,9 @@ export default {
     Header,
     Inputs,
     Schematic,
-    Plots
+    ProductionPlots,
+    RnpPlots,
+    PlotsHeader
   }
 }
 </script>

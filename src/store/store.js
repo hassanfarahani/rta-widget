@@ -24,7 +24,7 @@ export default new Vuex.Store({
             state.defSlidersColors = colors;
         },
         setUserInputsValues(state, userInputs) {
-            console.log('mutation userInputs:', userInputs)
+            // console.log('mutation userInputs:', userInputs)
             state.userInputs = userInputs;
         },
         // storing the length percentage of each slider in an object when the user change the slider (each time just on slider in the object has been changed compared to the previous object)
@@ -73,7 +73,7 @@ export default new Vuex.Store({
             const properties = ['porosity', 'permeability', 'fracHalfLength', 'fracHeight', 'fracSpacing', 'fracNum', 'compressibility', 'resPressure', 'flowingWellPressure', 'FVF', 'viscosity', 'rate'];
             let colors = [];
             userInputs.map((prop, index) => {                
-                const color = `linear-gradient(90deg, rgb(123, 232, 208) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%, rgb(255, 255, 255) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%)`
+                const color = `linear-gradient(90deg, rgb(245, 153, 32) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%, rgb(255, 255, 255) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%)`
                 colors.push(color);
             })
             
@@ -107,7 +107,7 @@ export default new Vuex.Store({
             linearRegressionResults['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
             linearRegressionResults['intercept'] = (sum_y - linearRegressionResults.slope * sum_x)/n;
             linearRegressionResults['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
-            console.log(linearRegressionResults)
+            // console.log(linearRegressionResults)
             commit('setTheSlopeOfRNPPlot', linearRegressionResults.slope);
         },
         // Calculation of rates based on the user inputs
@@ -252,7 +252,7 @@ export default new Vuex.Store({
                 
                 plotsParams.push(plotParams);
             });            
-            console.log('all parameters:', plotsParams)
+            // console.log('all parameters:', plotsParams)
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
         },
