@@ -216,14 +216,14 @@ export default {
             slidersRange: [
                 { porosity: [0, 1] },
                 { permeability: [0.001, 0.01] },
-                { fracHalfLength: [10, 200] },
-                { fracHeight: [10, 200] },
-                { fracSpacing: [15, 200] },
+                { fracHalfLength: [50, 200] },
+                { fracHeight: [50, 200] },
+                { fracSpacing: [60, 200] },
                 { fracNum: [1, 100] },
                 { compressibility: [1E-06, 200E-05] },
                 { resPressure: [100, 10000] },
                 { flowingWellPressure: [100, 10000] },
-                { FVF: [0, 2] },
+                { FVF: [1, 2] },
                 { viscosity: [0, 1] },
                 { rate: [0, 10] }
             ],

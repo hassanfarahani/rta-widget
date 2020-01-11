@@ -177,7 +177,7 @@ export const plotsMixin = {
 
         console.log('before line path:', data)
 
-            // Update our line path
+        // Update our line path
         const lineN = g.selectAll('.line').data(data)
             .enter().append('path')
             .attr('class', 'line')
@@ -233,7 +233,7 @@ export const plotsMixin = {
                     .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
                     .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
                     .attr('text-anchor', 'start')
-                    .attr('font-size', '0.8rem')
+                    .attr('font-size', '0.5rem')
                     .attr('font-style', 'italic')
                     .style('fill', 'maroon') 
                 }
@@ -329,7 +329,7 @@ export const plotsMixin = {
         // update axes & line path
         this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel);
     },
-    // this method is called to dispaly all the plots with default values in the input section of the page when the page first loaded
+    // this method is called to dispaly all the plots with default values when the page first loaded
     loadPlots(parentElement, plotType, data) {
         // console.log('plot type :', plotType)
         // Creating & Adding svg to the page

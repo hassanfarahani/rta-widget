@@ -1,8 +1,11 @@
 <template>
     <div class="plots">                     
         <div class="plots-box">
-            <div class="plots-box-header">         
+            <div class="plots-box-header">                         
                 <ul class="plots-list">
+                    <!-- <li class="plots-list-item">
+                        <span><i class="fas fa-chart-line" style="backgroundColor: #facc9d; color: rgb(245, 153, 32); border:1px solid rgb(245, 153, 32); padding: 0.1rem;"></i></span>
+                    </li> -->
                     <li class="plots-list-item">
                         <router-link :to="{name: 'ProductionPlots'}" active-class="active" exact>Production Plots</router-link>
                     </li>

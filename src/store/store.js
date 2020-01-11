@@ -69,13 +69,15 @@ export default new Vuex.Store({
         // slider background color along with all the slider default values when the app is initially loaded
         getColorSliders({ commit }, { userInputs, slidersRange }) {
 
-            // calculation of the percentage of the slider length that should be colored when the app is initially loaded
+            // calculation of the percentage ((value - min) / (max - min)) of the slider length that should be colored when the app is initially loaded
             const properties = ['porosity', 'permeability', 'fracHalfLength', 'fracHeight', 'fracSpacing', 'fracNum', 'compressibility', 'resPressure', 'flowingWellPressure', 'FVF', 'viscosity', 'rate'];
             let colors = [];
             userInputs.map((prop, index) => {                
-                const color = `linear-gradient(90deg, rgb(245, 153, 32) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%, rgb(255, 255, 255) ${ prop[properties[index]] / slidersRange[index][properties[index]][1] * 100 }%)`
+                const color = `linear-gradient(90deg, rgb(245, 153, 32)
+                 ${ (prop[properties[index]] - slidersRange[index][properties[index]][0]) / (slidersRange[index][properties[index]][1] - slidersRange[index][properties[index]][0]) * 100 }%,
+                 rgb(255, 255, 255) ${ (prop[properties[index]] - slidersRange[index][properties[index]][0]) / (slidersRange[index][properties[index]][1] - slidersRange[index][properties[index]][0]) * 100 }%)`;
                 colors.push(color);
-            })
+            });
             
             // sending the length percentage of all sliders with commiting the mutation wlong with the related color data
             commit('setColorSliders', colors);

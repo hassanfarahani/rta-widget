@@ -29,7 +29,7 @@
                      <path d="M70,130 l20,20 " stroke="#fff"  marker-end="url(#rightArrow)" />
 
                      <path d="M300,100 l20,20 " stroke="#fff"  marker-end="url(#rightArrow)" />
-                     <text x="300" y="140" text-anchor="start" fill="#fff" >horizontal well</text>
+                     <text x="300" y="140" text-anchor="start" fill="blue" >horizontal well</text>
                      
                   </g>
                 </svg>
@@ -316,64 +316,64 @@ export default {
         .attr('stroke-width', '1')
         .attr("marker-end", "url(#rightArrow)")
         
-    },
-    changeFractureHeight(fractureHeight) {
-      const dAttributeString = d3.select('#parallelogram').attr('d');
-      const dAttributeArray = dAttributeString.split(' ');
-
-      // getting the half length of the fracture page from the d attribute in the form of string (top side & bottom side of fracture page)
-      const dAttributeHalfLengthStringTop = dAttributeArray[1]; // *****
-      const dAttributeHalfLengthStringBottom = dAttributeArray[3]; // *****    
-   
-      // getting the height length of the fracture page from the d attribute  
-      const dAttributeArrayFractureHeightString = dAttributeArray[2];
-      const currentFractureHeightLength = Number(dAttributeArrayFractureHeightString.split('').splice(3).join('')); // *****      
-     
-      // getting the current x & y start point of the fracture page from the d attribute
-      const dAttributeHalfLengthStartPointString= dAttributeArray[0];
-      const dAttributeHalfLengthStartPointArray = dAttributeHalfLengthStartPointString.split('');
-      // get x
-      const commaIndexStartPoint = dAttributeHalfLengthStartPointArray.findIndex(item => item === ',');
-      const currentXStartPoint = Number(dAttributeHalfLengthStartPointArray.slice(1, commaIndexStartPoint-1).join('')); // *****
-
-      // get y
-      const currentYStartPoint = Number(dAttributeHalfLengthStartPointArray.slice(commaIndexStartPoint+1).join('')); // *****
-
-      // getting the current x & y end point of the fracture page from the d attribute
-      const dAttributeHalfLengthArrayTop = dAttributeHalfLengthStringTop.split('');
-      const commaIndexEndPoint = dAttributeHalfLengthArrayTop.findIndex(item => item === ',');
-
-      const currentXEndPoint = Number(dAttributeHalfLengthArrayTop.slice(1, commaIndexEndPoint).join('')); // *****
-      const currentYEndPoint = Number(dAttributeHalfLengthArrayTop.slice(commaIndexEndPoint+1).join('')); // ****
-
-      const g = d3.select('#fracture-area');
-      g.select('#parallelogram').remove();
-
-      const slope = -0.70175; // slope of current line (y = -0.70175x + 224.386) of fracture half-length 
-      const intercept = 224.386; // intercept of current line (y = -0.70175x + 224.386) of fracture half-length        
-
-      const deltaY = fractureHeight/7;    // change in x value of any point on the current line (y = -0.70175x + 224.386) of fracture half-length 
-
-      const updatedFractureHeightLength = currentFractureHeightLength + deltaY;
-
-      // const updatedXStartPoint = xStartPoint - deltaX; //current x value of starting point of the line 
-      const updatedYStartPoint = currentYStartPoint - deltaY/2;  //current y value of starting point of the line 
- 
-      // const updatedXEndPoint = xEndPoint + deltaX; // current x value of ending point of the line 
-      const updatedYEndPoint = currentYEndPoint - deltaY/2; // current y value of ending point of the line 
- 
-
-      const d = `M${currentXStartPoint},${updatedYStartPoint} ${dAttributeHalfLengthStringTop} l0,${updatedFractureHeightLength} ${dAttributeHalfLengthStringBottom} l0,${-updatedFractureHeightLength}`;
-      
-      g.append('path')
-        .attr('id', 'parallelogram')
-        .attr('d', d)
-        .attr('stroke', 'red')
-        .attr('stroke-width', '2')
-        .attr('stroke-dasharray', '1 1')
-        .attr('fill', 'yellow')
-
     }
+    // changeFractureHeight(fractureHeight) {
+    //   const dAttributeString = d3.select('#parallelogram').attr('d');
+    //   const dAttributeArray = dAttributeString.split(' ');
+
+    //   // getting the half length of the fracture page from the d attribute in the form of string (top side & bottom side of fracture page)
+    //   const dAttributeHalfLengthStringTop = dAttributeArray[1]; // *****
+    //   const dAttributeHalfLengthStringBottom = dAttributeArray[3]; // *****    
+   
+    //   // getting the height length of the fracture page from the d attribute  
+    //   const dAttributeArrayFractureHeightString = dAttributeArray[2];
+    //   const currentFractureHeightLength = Number(dAttributeArrayFractureHeightString.split('').splice(3).join('')); // *****      
+     
+    //   // getting the current x & y start point of the fracture page from the d attribute
+    //   const dAttributeHalfLengthStartPointString= dAttributeArray[0];
+    //   const dAttributeHalfLengthStartPointArray = dAttributeHalfLengthStartPointString.split('');
+    //   // get x
+    //   const commaIndexStartPoint = dAttributeHalfLengthStartPointArray.findIndex(item => item === ',');
+    //   const currentXStartPoint = Number(dAttributeHalfLengthStartPointArray.slice(1, commaIndexStartPoint-1).join('')); // *****
+
+    //   // get y
+    //   const currentYStartPoint = Number(dAttributeHalfLengthStartPointArray.slice(commaIndexStartPoint+1).join('')); // *****
+
+    //   // getting the current x & y end point of the fracture page from the d attribute
+    //   const dAttributeHalfLengthArrayTop = dAttributeHalfLengthStringTop.split('');
+    //   const commaIndexEndPoint = dAttributeHalfLengthArrayTop.findIndex(item => item === ',');
+
+    //   const currentXEndPoint = Number(dAttributeHalfLengthArrayTop.slice(1, commaIndexEndPoint).join('')); // *****
+    //   const currentYEndPoint = Number(dAttributeHalfLengthArrayTop.slice(commaIndexEndPoint+1).join('')); // ****
+
+    //   const g = d3.select('#fracture-area');
+    //   g.select('#parallelogram').remove();
+
+    //   const slope = -0.70175; // slope of current line (y = -0.70175x + 224.386) of fracture half-length 
+    //   const intercept = 224.386; // intercept of current line (y = -0.70175x + 224.386) of fracture half-length        
+
+    //   const deltaY = fractureHeight/7;    // change in x value of any point on the current line (y = -0.70175x + 224.386) of fracture half-length 
+
+    //   const updatedFractureHeightLength = currentFractureHeightLength + deltaY;
+
+    //   // const updatedXStartPoint = xStartPoint - deltaX; //current x value of starting point of the line 
+    //   const updatedYStartPoint = currentYStartPoint - deltaY/2;  //current y value of starting point of the line 
+ 
+    //   // const updatedXEndPoint = xEndPoint + deltaX; // current x value of ending point of the line 
+    //   const updatedYEndPoint = currentYEndPoint - deltaY/2; // current y value of ending point of the line 
+ 
+
+    //   const d = `M${currentXStartPoint},${updatedYStartPoint} ${dAttributeHalfLengthStringTop} l0,${updatedFractureHeightLength} ${dAttributeHalfLengthStringBottom} l0,${-updatedFractureHeightLength}`;
+      
+    //   g.append('path')
+    //     .attr('id', 'parallelogram')
+    //     .attr('d', d)
+    //     .attr('stroke', 'red')
+    //     .attr('stroke-width', '2')
+    //     .attr('stroke-dasharray', '1 1')
+    //     .attr('fill', 'yellow')
+
+    // }
   }
 
 }
