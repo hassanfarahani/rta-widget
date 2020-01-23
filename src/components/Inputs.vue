@@ -218,7 +218,7 @@ export default {
                 { permeability: [0.001, 0.01] },
                 { fracHalfLength: [50, 200] },
                 { fracHeight: [50, 200] },
-                { fracSpacing: [60, 200] },
+                { fracSpacing: [60, 300] },
                 { fracNum: [1, 100] },
                 { compressibility: [1E-06, 200E-05] },
                 { resPressure: [100, 10000] },

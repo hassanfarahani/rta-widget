@@ -162,6 +162,31 @@ export const plotsMixin = {
         }
 
     },
+    updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel) {
+        // x label & y label
+        xLabel.text(xAxisLabel);
+        yLabel.text(yAxisLabel);
+
+        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+        let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(dataArrayWithNoZeroLengthItem, xAxisParam, yAxisParam);
+
+        if (xAxisExtremse[1] >= this[`${plotType}SliderParams`].max) {
+            this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this[`${plotType}SliderParams`].sliderValues[0] , xAxisExtremse[1]], plotType, 'max');
+        }
+
+        if (xAxisExtremse[0] <= this[`${plotType}SliderParams`].min) {
+            this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
+        }
+
+        // Path generator
+        let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
+
+        xScale.domain(xAxisExtremse);
+        yScale.domain(yAxisExtremse);
+
+        // update axes & line path
+        this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel);
+    },
     updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel) {
 
         const colorScale = d3.scaleOrdinal(d3.schemeCategory10); // set color scale range
@@ -177,13 +202,27 @@ export const plotsMixin = {
 
         console.log('before line path:', data)
 
+        // opacity values to be applied on a multiline chart
+        const opacityValues = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55,0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1];
+
+        let dataLength = data.length;
+        let selectedOpacities = [];
+        const increaseInNextSelectedIndexOfOpacityValuesArray = Math.floor(opacityValues.length/dataLength);
+
+        for (let i=0; i<dataLength; i++) {            
+            selectedOpacities.push(opacityValues[i * increaseInNextSelectedIndexOfOpacityValuesArray]);
+        };
+        selectedOpacities = selectedOpacities.reverse();
+
         // Update our line path
         const lineN = g.selectAll('.line').data(data)
             .enter().append('path')
             .attr('class', 'line')
-            .attr('fill', 'red')
             .attr('d', pathGenerator)
-            .attr('stroke', (d, index) => colorScale(index));
+            // .attr('stroke', (d, index) => colorScale(index))
+            .attr('stroke', (d, index) => 'green')
+            .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
+            .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
 
         // line chart animation
         let totalLength = [];
@@ -204,8 +243,8 @@ export const plotsMixin = {
         // insertion of end of linear flow time line into the plots
         this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel);  
         
-        // add tooltip to the plot when user hover 
-        this.addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam)
+        // // add tooltip to the plot when user hover 
+        // this.addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam)
     },
     // add a vertical line to each plot to show the end of linear flow time
     addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel) {
@@ -214,28 +253,28 @@ export const plotsMixin = {
         data.forEach(dataSet => {
                 // check to make sure end of linear flow line is in the range of x axis 
                 if (dataSet[0].endOfLinearFlowParams[xAxisParam] <= dataSet[0][xAxisParam] ) {
-                return
+                    return
                 } else {
-                g.append('line')
-                .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
-                .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
-                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
-                .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
-                .transition().duration(1000)
-                .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
-                .attr('y2', this.innerHeight)
-                .attr('stroke', 'green')
-                .style('stroke-dasharray', ('3, 3'));
-                
-                g.append('text')
-                .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
-                    .attr('fill', 'black')
-                    .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
-                    .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
-                    .attr('text-anchor', 'start')
-                    .attr('font-size', '0.5rem')
-                    .attr('font-style', 'italic')
-                    .style('fill', 'maroon') 
+                    g.append('line')
+                    .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                    .transition().duration(1000)
+                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
+                    .attr('y2', this.innerHeight)
+                    .attr('stroke', 'brown')
+                    .style('stroke-dasharray', ('3, 3'));
+                    
+                    g.append('text')
+                    .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
+                        .attr('fill', 'black')
+                        .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
+                        .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
+                        .attr('text-anchor', 'start')
+                        .attr('font-size', '0.5rem')
+                        .attr('font-style', 'italic')
+                        .style('fill', 'maroon') 
                 }
         })
     },
@@ -303,31 +342,6 @@ export const plotsMixin = {
             focus.select('.y-hover-line').attr('x2', -xScale(d[xAxisParam]));
 
         }
-    },
-    updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel) {
-        // x label & y label
-        xLabel.text(xAxisLabel);
-        yLabel.text(yAxisLabel);
-
-        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-        let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(dataArrayWithNoZeroLengthItem, xAxisParam, yAxisParam);
-
-        if (xAxisExtremse[1] >= this[`${plotType}SliderParams`].max) {
-            this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this[`${plotType}SliderParams`].sliderValues[0] , xAxisExtremse[1]], plotType, 'max');
-        }
-
-        if (xAxisExtremse[0] <= this[`${plotType}SliderParams`].min) {
-            this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
-        }
-
-        // Path generator
-        let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
-
-        xScale.domain(xAxisExtremse);
-        yScale.domain(yAxisExtremse);
-
-        // update axes & line path
-        this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel);
     },
     // this method is called to dispaly all the plots with default values when the page first loaded
     loadPlots(parentElement, plotType, data) {

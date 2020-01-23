@@ -254,7 +254,9 @@ export default new Vuex.Store({
                 
                 plotsParams.push(plotParams);
             });            
-            // console.log('all parameters:', plotsParams)
+            console.log('time:', time)
+            console.log('q:', q)
+            console.log('mbt:', MBT)
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
         },

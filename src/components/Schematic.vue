@@ -5,14 +5,20 @@
             <div class="schematic-box-content">
               <div>
                 <svg width="31.25rem" :height="svgHeight">
-                  <g>
+                  <g id="fracture-spacing">
                     <rect x="10" :y="svgHeight/4" :width="0.9 * svgWidth" :height="svgHeight/1.7" stroke="#c7b49b" fill="#c7b49b" />
-                    <path d="M40,100 l300, 0 q30,-10 40 -50 v-45" stroke="blue" stroke-width="10px" fill="none" />
-                    <rect x="60" :y="svgHeight/3" :width="fractureWidth" :height="fractureHeight" stroke="#f59920"  fill="#f59920" />
-                    <rect :x="90 + fracSpacingAddedDistance" :y="svgHeight/3" :width="fractureWidth" :height="fractureHeight" stroke="#f59920"  fill="#f59920" />
-                    <rect :x="120 + 2 * fracSpacingAddedDistance" :y="svgHeight/3" :width="fractureWidth" :height="fractureHeight" stroke="#f59920"  fill="#f59920" />
-                    <rect :x="150 + 3 * fracSpacingAddedDistance" :y="svgHeight/3" :width="fractureWidth" :height="fractureHeight" stroke="#f59920"  fill="#f59920" />
-
+                    <path d="M30,100 l360, 0 q30,-10 40 -50 v-45" stroke="blue" stroke-width="10px" fill="none" />
+                    <!-- dotted green lines -->
+                    <g id="horizontal-well-section-lines">
+                      <line x1="99" y1="60" x2="99" y2="140" stroke="green" stroke-width="3" stroke-dasharray="5 5" />
+                      <line x1="201" y1="60" x2="201" y2="140" stroke="green" stroke-width="3" stroke-dasharray="5 5" />
+                    </g>
+                    <!-- fracture lines -->
+                    <g id="fracture-lines">
+                      <line id="first-line" :x1="defaultFirstFractureXCoordinate" y1="60" :x2="defaultFirstFractureXCoordinate" y2="140" stroke="orange" stroke-width="2" />
+                      <line id="second-line" :x1="defaultLastFractureXCoordinate" y1="60" :x2="defaultLastFractureXCoordinate" y2="140" stroke="orange" stroke-width="2" />
+                    </g>
+                    
                     <defs id="arrow-heads">
                         <marker fill="#fff" id="rightArrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" >
                           <path d="M0,0 L0,6 L6,3 z" fill="#000" />
@@ -21,12 +27,15 @@
                             <path d="M0,0 L0,6 L6,3 z" fill="#000"  />
                         </marker> 
                     </defs>
-                     <line id="fracture-arrow-line" x1="70" fill="#fff" y1="60" x2="98" y2="60" stroke="#fff" stroke-width="1" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
-                     <text x="20" y="40" text-anchor="start" fill="#75592f" font-weight="bold" >fracture spacing (ye): {{ defaultFractureSpacing }} ft </text>
-                     <!-- <tspan dx="0.01em" dy="0.15em">e</tspan> -->
 
-                     <text x="100" y="160" text-anchor="start" fill="#fff" >hydraulic fracture</text>
-                     <path d="M70,130 l20,20 " stroke="#fff"  marker-end="url(#rightArrow)" />
+                     <line id="fracture-spacing-arrow-line" :x1="defaultFirstFractureXCoordinate" y1="53" :x2="defaultLastFractureXCoordinate" y2="53" fill="#fff" stroke="#fff" stroke-width="1" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
+                     <text x="20" y="40" text-anchor="start" fill="#75592f" font-weight="bold" >fracture spacing (ye): {{ defaultFractureSpacing }} ft </text>
+
+                     <line id="horizontal-well-section-length" :x1="defaultFirstFractureXCoordinate" y1="145" :x2="defaultLastFractureXCoordinate" y2="145" fill="#fff" stroke="#fff" stroke-width="1" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
+                     <text x="60" y="165" text-anchor="start" fill="#75592f" font-weight="bold" >horizontal well section: {{ defaultFractureSpacing > 200 ? defaultFractureSpacing : horizontalWellSection }} ft </text>
+
+                     <!-- <text x="100" y="160" text-anchor="start" fill="#fff" >hydraulic fracture</text>
+                     <path d="M70,130 l20,20 " stroke="#fff"  marker-end="url(#rightArrow)" /> -->
 
                      <path d="M300,100 l20,20 " stroke="#fff"  marker-end="url(#rightArrow)" />
                      <text x="300" y="140" text-anchor="start" fill="blue" >horizontal well</text>
@@ -96,9 +105,11 @@ export default {
       svgHeight: 200,
       fractureWidth: 5,
       fractureHeight: 70,
-      fracSpacingAddedDistance: 100/7,
-      defaultFractureSpacing: 100,
-      defaultFractureHalfLength: 50
+      defaultFractureSpacing: 200,
+      horizontalWellSection: 200, // the green dotted line: part of the well to view the fracture spacing & the number of fractures
+      defaultFractureHalfLength: 50,
+      defaultFirstFractureXCoordinate: 100,
+      defaultLastFractureXCoordinate: 200
     }
   },
   computed: {
@@ -117,8 +128,8 @@ export default {
     //   // this.changeFractureHeight(updatedFractureData.fractureHeight);
     // }
     fractureSpacing(updatedFractureSpacing) {
-      this.fracSpacingAddedDistance = updatedFractureSpacing / 7;
-      this.increaseFractureArrowLength(updatedFractureSpacing);
+      // console.log('frac spacing: ', updatedFractureSpacing);
+      this.changeFractureSpacing(updatedFractureSpacing);
       this.defaultFractureSpacing = updatedFractureSpacing;
     },
     fractureHalfLength(updatedFractureHalfLength) {
@@ -127,70 +138,106 @@ export default {
     }
   },
   methods: {
-    // increase the length of fracture spacing arrow
-    increaseFractureArrowLength(updatedFractureSpacing) {
-      const g = d3.select('g');
-      g.select('defs').remove();
-      g.select('line').remove();
+    changeFractureSpacing(updatedFractureSpacing) {
+      const horizontalWellSection = this.horizontalWellSection;
+      const x1 = 100;
+      const x2 = 200;
+      // const x1 = d3.select('#fracture-lines')._groups[0]['0'].firstChild.x1.baseVal.value;
+      // const x2 = d3.select('#fracture-lines')._groups[0]['0'].lastChild.x1.baseVal.value;
+      const mathematicalFractureSpacing = x2 - x1;
+      d3.select('#fracture-lines').remove();
 
-      const defs = g.append("svg:defs");
+      let fractureLinesXCoordinates = [];
+      if (updatedFractureSpacing <= horizontalWellSection) {
+        const fracturePairNumber = Math.floor(horizontalWellSection/updatedFractureSpacing);
 
-      defs.append("svg:marker")
-        .attr("id", "rightArrow")
-        .attr("refX", 0)
-        .attr("refY", 3)
-        .attr("markerWidth", 10)
-        .attr("markerHeight", 10)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,0 L0,6 L6,3 z")
-        .style("stroke", "#fff")
-        .style('fill', '#000');
-      
-      defs.append("svg:marker")
-        .attr("id", "leftArrow")
-        .attr("refX", 0)
-        .attr("refY", 3)
-        .attr("markerWidth", 10)
-        .attr("markerHeight", 10)
-        .attr("orient", "auto-start-reverse")
-        .append("path")
-        .attr("d", "M0,0 L0,6 L6,3 z")
-        .style("stroke", "#fff")
-        .style('fill', '#000');
+        const distanceReducedFromhorizontalWellSection = horizontalWellSection % updatedFractureSpacing;
 
-        let arrowLengthCoefficient;
+        const mathematicalDistanceReducedFromMathematicalFrcatureSpacing = mathematicalFractureSpacing * distanceReducedFromhorizontalWellSection / horizontalWellSection;
 
-          if (updatedFractureSpacing <= 30) {
-           arrowLengthCoefficient = 0.88;
-          } else if (updatedFractureSpacing > 30 && updatedFractureSpacing <= 50) {
-            arrowLengthCoefficient = 0.48;
-          } else if (updatedFractureSpacing > 50 && updatedFractureSpacing <= 70) {
-            arrowLengthCoefficient = 0.38;
-          } else if (updatedFractureSpacing > 70 && updatedFractureSpacing <= 90) {
-            arrowLengthCoefficient = 0.28;
-          } else if (updatedFractureSpacing > 90 && updatedFractureSpacing <= 120) {
-           arrowLengthCoefficient = 0.26;
-          } else if (updatedFractureSpacing > 120 && updatedFractureSpacing <= 150) {
-           arrowLengthCoefficient = 0.25;
-          } else if (updatedFractureSpacing > 150 && updatedFractureSpacing <= 175) {
-           arrowLengthCoefficient = 0.24;
-          } else if (updatedFractureSpacing > 175 && updatedFractureSpacing <= 200) {
-           arrowLengthCoefficient = 0.22;
-          }
+        const firstFractureLineXCoordinate = x1 + mathematicalDistanceReducedFromMathematicalFrcatureSpacing/2;
 
-        g.append('line')
-          .attr('x1', 70)
-          .attr('y1', 60)
-          .attr('x2', 70)         
-          .attr('y2', 60)
-          .transition().duration(500)
-          .attr('x2', 70 +  updatedFractureSpacing * arrowLengthCoefficient)
-          .attr('stroke', '#fff')
-          .attr('stroke-width', 1)
-          .attr("marker-start", "url(#leftArrow)")
-          .attr("marker-end", "url(#rightArrow)")
-          .style('fill', '#fff')
+        fractureLinesXCoordinates.push(firstFractureLineXCoordinate);
+
+        const mathematicalUpdatedFractureSpacing = updatedFractureSpacing * mathematicalFractureSpacing / horizontalWellSection;        
+
+        let newFractureLineXCoordinate = firstFractureLineXCoordinate;
+        for (let i=1; i<=fracturePairNumber; i++) {
+          newFractureLineXCoordinate = newFractureLineXCoordinate + mathematicalUpdatedFractureSpacing;
+          fractureLinesXCoordinates.push(newFractureLineXCoordinate);
+        };     
+      } else {
+        d3.select('#horizontal-well-section-lines').remove();
+        d3.select('#horizontal-well-section-length').remove();
+
+        const mathematicalUpdatedFractureSpacing = updatedFractureSpacing * mathematicalFractureSpacing / horizontalWellSection;
+
+        const addedDistanceToFractureLinesXCoordinate = (mathematicalUpdatedFractureSpacing - mathematicalFractureSpacing) / 2;
+
+        const firstFractureLineXCoordinate = x1 - addedDistanceToFractureLinesXCoordinate;
+
+        const lastFractureLineXCoordinate = x2 + addedDistanceToFractureLinesXCoordinate;
+
+        fractureLinesXCoordinates.push(firstFractureLineXCoordinate);
+        fractureLinesXCoordinates.push(lastFractureLineXCoordinate);        
+
+        const g = d3.select('#fracture-spacing')
+          .append('g').attr('id', 'horizontal-well-section-lines');
+
+        const horizontalWellSectionXCoordinates = [firstFractureLineXCoordinate - 1, lastFractureLineXCoordinate + 1];
+
+        // Adding vertical green dotted lines to the horizontal well section 
+        horizontalWellSectionXCoordinates.forEach(x => {
+          g.append('line')             
+            .attr('x1', x)
+            .attr('y1', 60)
+            .attr('x2', x)         
+            .attr('y2', 140)
+            .attr('stroke', 'green')
+            .attr('stroke-width', '3')
+            .attr('stroke-dasharray', '5 5')
+        });
+
+        // Adding arrow line to the horizontal well section (length of horizontal well section)
+        d3.select('#fracture-spacing').append('line')
+            .attr('id', 'horizontal-well-section-length')             
+            .attr('x1', horizontalWellSectionXCoordinates[0])
+            .attr('y1', 145)
+            .attr('x2', horizontalWellSectionXCoordinates[1])         
+            .attr('y2', 145)
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 1)
+            .attr("marker-start", "url(#leftArrow)")
+            .attr("marker-end", "url(#rightArrow)")
+            .style('fill', '#fff')
+      };
+
+
+
+      const g = d3.select('#fracture-spacing').append('g').attr('id', 'fracture-lines');
+      fractureLinesXCoordinates.forEach(x => {
+        g.append('line') 
+        .attr('x1', x)
+        .attr('y1', 60)
+        .attr('x2', x)         
+        .attr('y2', 140)
+        .attr('stroke', 'orange')
+        .attr('stroke-width', '2')
+      });
+
+      d3.select('#fracture-spacing-arrow-line').remove();
+
+      g.append('line')
+        .attr('id', 'fracture-spacing-arrow-line')
+        .attr('x1', fractureLinesXCoordinates[0] + 4)
+        .attr('y1', 53)
+        .attr('x2', fractureLinesXCoordinates[1] - 4)         
+        .attr('y2', 53)
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 1)
+        .attr("marker-start", "url(#leftArrow)")
+        .attr("marker-end", "url(#rightArrow)")
+
     },
     changeFractureHalfLength(fractureHalfLength) {
       const dAttributeString = d3.select('#parallelogram').attr('d');
