@@ -1,4 +1,7 @@
 import * as d3 from 'd3';
+import { event as currentEvent} from 'd3-selection'
+// import { event } from 'd3-selection'
+
 export const plotsMixin = {
     data () {
         return {
@@ -126,223 +129,6 @@ export const plotsMixin = {
         // console.log('filtered data p-p:', selectedPlotTypeData)
         return selectedPlotTypeData;
     },
-    // Adding the new plot (generated from the new user inputs) to the existing plots on the page
-    updateLoadPlots(parentElement, plotType, data) {
-        let svgIdPart = this.createSvgIdPart(parentElement);
-
-        d3.select(`#svg-${svgIdPart}`).remove();
-
-        this.loadPlots(parentElement, plotType, data);
-    },
-    // getting the parent element id and eliminating #
-    createSvgIdPart(parentElement) {
-        let svgId = parentElement.split('');
-        svgId.shift();
-        return svgId.join('');
-    },
-    lineGenerator(xAxisParam, yAxisParam, xScale, yScale) {
-        let path = d3.line()
-                .x(d => xScale(d[xAxisParam]))
-                .y(d => yScale(d[yAxisParam]));
-        
-        return path;
-    },
-    findAxesMinMax(data, xAxisParam, yAxisParam) {
-        // finding the maximum x-axis range between all the arrays in data array (plots with different x ranges) ===> data = [ [...], [...], ...]
-        let xAxisMin = parseInt(this.findMin(data, xAxisParam));
-        let xAxisMax = parseInt(this.findMax(data, xAxisParam));
-
-        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-        let yAxisMin = parseInt(this.findMin(data, yAxisParam));
-        let yAxisMax = parseInt(this.findMax(data, yAxisParam));
-
-        return {
-            xAxisExtremse: [xAxisMin, xAxisMax],
-            yAxisExtremse: [yAxisMin, yAxisMax]
-        }
-
-    },
-    updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel) {
-        // x label & y label
-        xLabel.text(xAxisLabel);
-        yLabel.text(yAxisLabel);
-
-        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
-        let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(dataArrayWithNoZeroLengthItem, xAxisParam, yAxisParam);
-
-        if (xAxisExtremse[1] >= this[`${plotType}SliderParams`].max) {
-            this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this[`${plotType}SliderParams`].sliderValues[0] , xAxisExtremse[1]], plotType, 'max');
-        }
-
-        if (xAxisExtremse[0] <= this[`${plotType}SliderParams`].min) {
-            this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
-        }
-
-        // Path generator
-        let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
-
-        xScale.domain(xAxisExtremse);
-        yScale.domain(yAxisExtremse);
-
-        // update axes & line path
-        this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel);
-    },
-    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel) {
-
-        const colorScale = d3.scaleOrdinal(d3.schemeCategory10); // set color scale range
-        colorScale.domain(data.map((d, index) => index)); // set color domain
-
-        
-        // Update axes
-        xAxisCall.scale(xScale);
-        xAxis.call(xAxisCall)
-
-        yAxisCall.scale(yScale);
-        yAxis.call(yAxisCall);
-
-        console.log('before line path:', data)
-
-        // opacity values to be applied on a multiline chart
-        const opacityValues = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55,0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1];
-
-        let dataLength = data.length;
-        let selectedOpacities = [];
-        const increaseInNextSelectedIndexOfOpacityValuesArray = Math.floor(opacityValues.length/dataLength);
-
-        for (let i=0; i<dataLength; i++) {            
-            selectedOpacities.push(opacityValues[i * increaseInNextSelectedIndexOfOpacityValuesArray]);
-        };
-        selectedOpacities = selectedOpacities.reverse();
-
-        // Update our line path
-        const lineN = g.selectAll('.line').data(data)
-            .enter().append('path')
-            .attr('class', 'line')
-            .attr('d', pathGenerator)
-            // .attr('stroke', (d, index) => colorScale(index))
-            .attr('stroke', (d, index) => 'green')
-            .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
-            .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
-
-        // line chart animation
-        let totalLength = [];
-        lineN._groups[0].forEach(path => {
-            totalLength.push(path.getTotalLength());
-        });
-
-        lineN._groups[0].forEach((path, i) => {
-            d3.select(path)
-            .attr('stroke-dasharray', totalLength[i] + ' ' + totalLength[i])
-            .attr('stroke-dashoffset', totalLength[i])
-            .transition()
-                .duration(1000)
-                // .ease('linear')
-                .attr("stroke-dashoffset", 0);
-        });
-
-        // insertion of end of linear flow time line into the plots
-        this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel);  
-        
-        // // add tooltip to the plot when user hover 
-        // this.addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam)
-    },
-    // add a vertical line to each plot to show the end of linear flow time
-    addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel) {
-
-        const distanceFromCurve = 5;
-        data.forEach(dataSet => {
-                // check to make sure end of linear flow line is in the range of x axis 
-                if (dataSet[0].endOfLinearFlowParams[xAxisParam] <= dataSet[0][xAxisParam] ) {
-                    return
-                } else {
-                    g.append('line')
-                    .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
-                    .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
-                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
-                    .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
-                    .transition().duration(1000)
-                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
-                    .attr('y2', this.innerHeight)
-                    .attr('stroke', 'brown')
-                    .style('stroke-dasharray', ('3, 3'));
-                    
-                    g.append('text')
-                    .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
-                        .attr('fill', 'black')
-                        .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
-                        .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
-                        .attr('text-anchor', 'start')
-                        .attr('font-size', '0.5rem')
-                        .attr('font-style', 'italic')
-                        .style('fill', 'maroon') 
-                }
-        })
-    },
-    addTooltipByHovering(data, xScale, yScale, g, xAxisParam, yAxisParam) { 
-        
-        let bisect = d3.bisector(d => d[xAxisParam]).left;
-
-        let focus = g.append("g")
-            .attr("class", "focus")
-            .style("display", "none");            
-            
-
-        focus.append("line")
-            .attr("class", "x-hover-line hover-line")
-            .attr("y1", 0)
-            .attr("y2", -this.innerHeight);
-
-        focus.append("line")
-            .attr("class", "y-hover-line hover-line")
-            .attr("x1", 0)
-            .attr("x2", this.innerWidth);
-
-        focus.append("circle")
-            .attr("r", 7.5);
-        
-        focus.append("rect")
-            .attr("class", "tooltip")
-            .attr("width", 150)
-            .attr("height", 50)
-            .attr("x", 20)
-            .attr("y", -22)
-            .attr("rx", 4)
-            .attr("ry", 4);
-
-        focus.append("text")
-            .attr("class", "tooltip-x")
-            .attr("x", 28)
-            .attr("y", -2);  
-
-        focus.append("text")
-            .attr("class", "tooltip-y")
-            .attr("x", 28)
-            .attr("y", 18); 
-
-        let y2 = this.innerHeight;
-
-        g.append("rect")
-            .attr("class", "overlay")
-            .attr("width", this.innerWidth)
-            .attr("height", this.innerHeight)
-            .on("mouseover", () => focus.style("display", null))
-            .on("mouseout", () => focus.style("display", "none"))
-            .on("mousemove", mousemove);
-
-        function mousemove() {
-            let x0 = xScale.invert(d3.mouse(this)[0])
-                let i = bisect(data[0], x0)
-                let d0 = data[0][i - 1]
-                let d1 = data[0][i]
-                let d = x0 - d0[xAxisParam] > d1[xAxisParam] - x0 ? d1 : d0;
-            focus.attr('transform', `translate(${xScale(d[xAxisParam])}, ${yScale(d[yAxisParam])})`);
-            focus.select('.tooltip-x').text(`${xAxisParam} = ${d[xAxisParam]}`);
-            focus.select('.tooltip-y').text(`${yAxisParam} = ${d[yAxisParam]}`);
-            focus.select('.x-hover-line').attr('y2', y2 - yScale(d[yAxisParam]) );
-            focus.select('.y-hover-line').attr('x2', -xScale(d[xAxisParam]));
-
-        }
-    },
     // this method is called to dispaly all the plots with default values when the page first loaded
     loadPlots(parentElement, plotType, data) {
         // console.log('plot type :', plotType)
@@ -362,6 +148,7 @@ export const plotsMixin = {
         // Scales
         let xScale;
         let yScale;
+        
 
         // scale definition
         if (plotType === 'productionPlot' || plotType === 'rnpPlot') {
@@ -379,7 +166,7 @@ export const plotsMixin = {
             .tickFormat(d3.format(",.0f"));
     
         const xAxis = g.append('g')
-            .attr('class', 'x axis')
+            .attr('class', 'x--axis')
             .attr('transform', `translate(0,${this.innerHeight})`);
 
         // Y-axis
@@ -387,7 +174,7 @@ export const plotsMixin = {
             .ticks(10)
             .tickFormat(d3.format(",.0f"));
         const yAxis = g.append('g')
-            .attr('class', 'y axis');
+            .attr('class', 'y--axis');
 
         // Axes Labels
         let xLabel = g.append("text")
@@ -455,7 +242,326 @@ export const plotsMixin = {
             }
         });
             
-        this.updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel);          
+        this.updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel, svg);          
+    },
+    // Adding the new plot (generated from the new user inputs) to the existing plots on the page
+    updateLoadPlots(parentElement, plotType, data) {
+        let svgIdPart = this.createSvgIdPart(parentElement);
+
+        d3.select(`#svg-${svgIdPart}`).remove();
+
+        this.loadPlots(parentElement, plotType, data);
+    },
+    // getting the parent element id and eliminating #
+    createSvgIdPart(parentElement) {
+        let svgId = parentElement.split('');
+        svgId.shift();
+        return svgId.join('');
+    },
+    lineGenerator(xAxisParam, yAxisParam, xScale, yScale) {
+        let path = d3.line()
+                .x(d => xScale(d[xAxisParam]))
+                .y(d => yScale(d[yAxisParam]));
+        
+        return path;
+    },
+    findAxesMinMax(data, xAxisParam, yAxisParam) {
+        // finding the maximum x-axis range between all the arrays in data array (plots with different x ranges) ===> data = [ [...], [...], ...]
+        let xAxisMin = parseInt(this.findMin(data, xAxisParam));
+        let xAxisMax = parseInt(this.findMax(data, xAxisParam));
+
+        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+        let yAxisMin = parseInt(this.findMin(data, yAxisParam));
+        let yAxisMax = parseInt(this.findMax(data, yAxisParam));
+
+        return {
+            xAxisExtremse: [xAxisMin, xAxisMax],
+            yAxisExtremse: [yAxisMin, yAxisMax]
+        }
+
+    },
+    updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel, svg) {
+        // x label & y label
+        xLabel.text(xAxisLabel);
+        yLabel.text(yAxisLabel);
+
+        // finding the minimum & maximum y-axis (range) between all the arrays in data array (plots with different y ranges) ===> data = [ [...], [...], ...]
+        let {xAxisExtremse, yAxisExtremse} = this.findAxesMinMax(dataArrayWithNoZeroLengthItem, xAxisParam, yAxisParam);
+
+        if (xAxisExtremse[1] >= this[`${plotType}SliderParams`].max) {
+            this.setSliderExtremeThenSliderValue(xAxisExtremse[1], [this[`${plotType}SliderParams`].sliderValues[0] , xAxisExtremse[1]], plotType, 'max');
+        }
+
+        if (xAxisExtremse[0] <= this[`${plotType}SliderParams`].min) {
+            this.setSliderExtremeThenSliderValue(xAxisExtremse[0], [xAxisExtremse[0] , this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
+        }
+
+        // Path generator
+        let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
+
+        xScale.domain(xAxisExtremse);
+        yScale.domain(yAxisExtremse);
+
+        // update axes & line path
+        this.updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, dataArrayWithNoZeroLengthItem, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel, xAxisExtremse, yAxisExtremse, svg);
+    },
+    updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel, xAxisExtremse, yAxisExtremse, svg) {
+
+           
+        // Update axes
+        xAxisCall.scale(xScale);
+        xAxis.call(xAxisCall)
+
+        yAxisCall.scale(yScale);
+        yAxis.call(yAxisCall);
+
+        console.log('before line path:', data)
+
+        // opacity values to be applied on a multiline chart
+        const opacityValues = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55,0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1];
+
+        let dataLength = data.length;
+        let selectedOpacities = [];
+        const increaseInNextSelectedIndexOfOpacityValuesArray = Math.floor(opacityValues.length/dataLength);
+
+        for (let i=0; i<dataLength; i++) {            
+            selectedOpacities.push(opacityValues[i * increaseInNextSelectedIndexOfOpacityValuesArray]);
+        };
+        selectedOpacities = selectedOpacities.reverse(); 
+        
+        // Add a clipPath: everything out of this area won't be drawn
+        g.append('defs')
+            .append('clipPath')
+            .attr('id', 'clip')
+            .append('rect')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', this.innerWidth)
+                .attr('height', this.innerHeight);
+        
+        // Add brushing
+        var brush = d3.brush()
+        // .extent( [ [0,0], [this.innerWidth,this.innerHeight] ] )
+        .on("end", () => {           
+
+            var s = d3.event.selection;
+            console.log('s:', s)
+  
+            if (!s) {
+              if (!idleTimeout) return idleTimeout = setTimeout(idled, idleDelay);
+                xScale.domain(xAxisExtremse);
+                yScale.domain(yAxisExtremse);
+            } else {
+                console.log('x0:',xScale.invert(s[0][0]))
+                console.log('x1:',xScale.invert(s[1][0]))
+                xScale.domain([xScale.invert(s[0][0]), xScale.invert(s[1][0])]);
+                // xScale.domain([s[0][0] * this.innerHeight/this.innerWidth, s[1][0]].map(xScale.invert, xScale));               
+                yScale.domain([s[1][1], s[0][1] * this.innerHeight/this.innerWidth].map(yScale.invert, yScale));
+
+                //  yScale.domain([yScale.invert(s[1][1]), yScale.invert(s[0][1])]);
+                svg.select(".brush").call(brush.move, null);
+            }
+            // zoom();
+            var t = svg.transition().duration(750);
+            svg.select(".x--axis").transition(t).call(xAxisCall);
+            g.select(".y--axis").transition(t).call(yAxisCall);
+
+            g.selectAll(".line").transition(t)
+                .attr("d", d => pathGenerator(d))
+                // .attr("d", pathGenerator)
+                // .attr('stroke', (d, index) => 'green')
+                // .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
+                // .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
+                // .style('fill','none')
+        }),
+
+        idleTimeout,
+        idleDelay = 350;
+
+        // Create the area variable: where both the area and the brush take place
+        var main = g.append('g')
+        .attr('class', 'main')
+        .attr('clip-path', 'url(#clip)');
+    
+        // var drag = d3.drag().on('drag', () => {
+        //     console.log('drag:', d3.event.x)
+        //     d3.selectAll('.line')
+        //     .attr('transform', `translate(${d3.event.x}, ${d3.event.y})`);
+        //     g.select(".axis--x").call(xAxisCall);
+        //     g.select(".axis--y").call(yAxisCall);
+        // });
+        
+        svg.append("g")
+            .attr("class", "brush")
+            .call(brush);  
+
+       // add tooltip to the plot when user hover 
+       this.addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam)
+
+
+        // Update our line path
+        // const lines = g.selectAll('.line').data(data)
+        const lines = main.selectAll('.line').data(data)
+            .enter().append('path')
+            .attr('class', 'line')
+            .attr('d', pathGenerator)
+            // .attr('stroke', (d, index) => colorScale(index))
+            .attr('stroke', (d, index) => 'green')
+            .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
+            .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
+            .style('fill','none')
+
+        // A function that set idleTimeOut to null
+        var idleTimeout
+        function idled() { idleTimeout = null; }
+      
+        // line chart animation
+        let totalLength = [];
+        lines._groups[0].forEach(path => {
+            totalLength.push(path.getTotalLength());
+        });
+
+        lines._groups[0].forEach((path, i) => {
+            d3.select(path)
+            .attr('stroke-dasharray', totalLength[i] + ' ' + totalLength[i])
+            .attr('stroke-dashoffset', totalLength[i])
+            .transition()
+                .duration(1000)
+                // .ease('linear')
+                .attr("stroke-dashoffset", 0);
+        });
+
+
+        // insertion of end of linear flow time line into the plots
+        // this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel); 
+    },  
+    addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam) { 
+
+        const mouseG = g.append('g')
+            .attr('class', 'mouse-over-effects')
+            .style("display", "none"); 
+
+        mouseG.append('path') // this is the black vertical line to follow mouse
+            .attr('class', 'mouse-line')
+            .style('stroke', 'black')
+            .style('stroke-width', '2px')
+            .style('opacity', '0');
+
+        let lines = document.getElementsByClassName('line');     
+
+        let mousePerLine = mouseG.selectAll('.mouse-per-line')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'mouse-per-line');
+
+        mousePerLine.append('circle')
+            .attr('r', 3)
+            .style('stroke', 'red')
+            .style('fill', 'red')
+            .style('stroke-width', '1px')
+            .style('opacity', '0');
+
+        mousePerLine.append('text')
+            .attr('transform', 'translate(10,3)');
+        const innerHeight = this.innerHeight;
+
+        // g.append('rect') // append a rect to catch mouse movements on canvas
+        svg.select('.overlay') // append a rect to catch mouse movements on canvas
+        .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
+        .attr('margin', 'auto')
+        .attr('width', this.innerWidth) // can't catch mouse events on a g element
+        .attr('height', innerHeight)
+        .attr('fill', 'none')
+        .attr('pointer-events', 'all')
+        .on('mouseout', () => { // on mouse out hide line, circles and text
+          d3.selectAll('.mouse-line')
+            .style('opacity', '0');
+          d3.selectAll('.mouse-per-line circle')
+            .style('opacity', '0');
+          d3.selectAll('.mouse-per-line text')
+            .style('opacity', '0');
+            mouseG.style('display', 'none')
+        })
+        .on('mouseover', () => { // on mouse in show line, circles and text
+          d3.selectAll('.mouse-line')
+            .style('opacity', '1');
+          d3.selectAll('.mouse-per-line circle')
+            .style('opacity', '1');
+          d3.selectAll('.mouse-per-line text')
+            .style('opacity', '1');
+            mouseG.style('display', null)
+        })
+        .on('mousemove', function() { // mouse moving over canvas
+          let mouse = d3.mouse(this);
+          d3.selectAll('.mouse-line')
+            .attr('d', () => {
+              let d = `M${mouse[0]},${innerHeight}`;
+              d += ` ${ mouse[0]},${0}`;   
+              return d;
+            });
+
+          d3.selectAll('.mouse-per-line')
+            .attr('transform', function(d, i) {
+              
+              let beginning = 0,
+                  end = lines[i].getTotalLength(),
+                  target = null;
+              let pos;
+              while (true){
+                target = Math.floor((beginning + end) / 2);
+                pos = lines[i].getPointAtLength(target);
+                if ((target === end || target === beginning) && pos.x !== mouse[0]) {
+                    break;
+                }
+                if (pos.x > mouse[0])      end = target;
+                else if (pos.x < mouse[0]) beginning = target;
+                else break; //position found
+              };             
+              
+              d3.select(this).select('text')
+                .text(yScale.invert(pos.y).toFixed(2));
+                // .text(`${xScale.invert(pos.x).toFixed(1)}, ${yScale.invert(pos.y).toFixed(2)}`);
+                
+              return `translate(${mouse[0]},${pos.y})`;
+            });
+        });
+    },  
+    // add a vertical line to each plot to show the end of linear flow time
+    addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel) {
+
+        const distanceFromCurve = 5;
+        // console.log('data end of linear:', data[0][0].endOfLinearFlowParams[yAxisParam])
+        data.forEach(dataSet => {
+                // check to make sure end of linear flow line is in the range of x axis 
+                if (dataSet[0].endOfLinearFlowParams[xAxisParam] <= dataSet[0][xAxisParam] ) {
+                    return
+                } else {
+                    console.log('yAxisParam :', yAxisParam)
+                    console.log('test no yScale :', dataSet[0].endOfLinearFlowParams[yAxisParam])
+                    console.log('test with yScale:', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                    g.append('line')
+                    .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
+                    .transition().duration(1000)
+                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
+                    .attr('y2', this.innerHeight)
+                    .attr('stroke', 'brown')
+                    .style('stroke-dasharray', ('3, 3'));
+                    
+                    g.append('text')
+                    .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
+                        .attr('fill', 'black')
+                        .attr('x', `${xScale(dataSet[0].endOfLinearFlowParams[xAxisParam])}`)
+                        .attr('y', `${yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]) - distanceFromCurve}` )
+                        .attr('text-anchor', 'start')
+                        .attr('font-size', '0.5rem')
+                        .attr('font-style', 'italic')
+                        .style('fill', 'maroon') 
+                }
+        })
     },
     setSliderExtremeThenSliderValue (value, setVal, plotType, valueType) {
 

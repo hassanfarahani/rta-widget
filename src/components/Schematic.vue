@@ -29,7 +29,7 @@
                     </defs>
 
                      <line id="fracture-spacing-arrow-line" :x1="defaultFirstFractureXCoordinate" y1="53" :x2="defaultLastFractureXCoordinate" y2="53" fill="#fff" stroke="#fff" stroke-width="1" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
-                     <text x="20" y="40" text-anchor="start" fill="#75592f" font-weight="bold" >fracture spacing (ye): {{ defaultFractureSpacing }} ft </text>
+                     <text x="20" y="40" text-anchor="start" fill="#75592f" font-weight="bold" >fracture spacing (ye): {{ fractureSpacing }} ft </text>
 
                      <line id="horizontal-well-section-length" :x1="defaultFirstFractureXCoordinate" y1="145" :x2="defaultLastFractureXCoordinate" y2="145" fill="#fff" stroke="#fff" stroke-width="1" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
                      <text x="60" y="165" text-anchor="start" fill="#75592f" font-weight="bold" >horizontal well section: {{ defaultFractureSpacing > 200 ? defaultFractureSpacing : horizontalWellSection }} ft </text>
@@ -53,7 +53,7 @@
                     <ellipse cx="400" cy="97.5" rx="3" ry="5" fill="none" stroke="black" />                    
        
                     <!-- fracture area & fracture half length arrow -->
-                    <path id="parallelogram" d="M220,70 l57,-40 l0,95 l-57,40 l0,-95" stroke="red" stroke-dasharray="10 10 " stroke-width="2" fill="#f59920" /> 
+                    <path id="parallelogram" d="M220,70 l57,-40 l0,95 l-57,40 l0,-95" stroke="red" stroke-dasharray="10 10 " stroke-width="2" fill="#ffd737" /> 
                     <path id="fracture-half-length-arrow" d="M250,42 l24,-17" stroke="black" fill="black" marker-start="url(#leftArrow)" marker-end="url(#rightArrow)" />
                     <text x="55" y="30" text-anchor="start" fill="#75592f" font-weight="bold" >fracture half-length (xf) = {{ defaultFractureHalfLength }} ft</text>
 
@@ -128,7 +128,6 @@ export default {
     //   // this.changeFractureHeight(updatedFractureData.fractureHeight);
     // }
     fractureSpacing(updatedFractureSpacing) {
-      // console.log('frac spacing: ', updatedFractureSpacing);
       this.changeFractureSpacing(updatedFractureSpacing);
       this.defaultFractureSpacing = updatedFractureSpacing;
     },
@@ -136,6 +135,10 @@ export default {
       this.changeFractureHalfLength(updatedFractureHalfLength);
       this.defaultFractureHalfLength = updatedFractureHalfLength;
     }
+  },
+  mounted() {
+    const defaultFractureSpacing = this.$store.getters.fractureSpacing;
+    this.changeFractureSpacing(defaultFractureSpacing);    
   },
   methods: {
     changeFractureSpacing(updatedFractureSpacing) {
@@ -150,6 +153,7 @@ export default {
       let fractureLinesXCoordinates = [];
       if (updatedFractureSpacing <= horizontalWellSection) {
         const fracturePairNumber = Math.floor(horizontalWellSection/updatedFractureSpacing);
+        console.log('frac pair number:', fracturePairNumber);
 
         const distanceReducedFromhorizontalWellSection = horizontalWellSection % updatedFractureSpacing;
 
@@ -290,7 +294,7 @@ export default {
         .attr('stroke', 'red')
         .attr('stroke-width', '2')
         .attr('stroke-dasharray', '10 10')
-        .attr('fill', '#f59920');    
+        .attr('fill', '#ffd737');    
 
       d3.select('#horizontal-well-cover').remove();
       g.append('path') // *

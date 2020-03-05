@@ -15,6 +15,7 @@ module.exports = {
   entry: {
     app: './src/main.js'
   },
+  // plugins: [new webpack.ProvidePlugin({ 'window.d3': 'd3' })],
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js',

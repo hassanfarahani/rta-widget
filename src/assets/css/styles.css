@@ -29,14 +29,80 @@ body {
 
 /* ------------ Header --------------- */
 .header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     padding:0.5rem 1rem;
     background-color: #fff;
     border-radius: 0.3rem;
 }
 
-.header h1 {
-    background-color: #facc9d;
+.header div {
+    background-color: #303747;
     padding: 0.3rem;
+    color: #ffd737;
+    border-radius: 0.3rem;
+    align-self: center;
+    justify-self: end;
+}
+
+.header h1 {
+    background-color: #303747;
+    padding: 0.3rem;
+    color: #ffd737;
+    border-radius: 0.3rem;
+}
+
+
+/* -------------- lessons list ----------------- */
+.lessons {
+    background-color: #fff;
+    border-radius: 0.3rem;
+}
+
+.lessons-box {
+    margin: 0.5rem;
+    border: 3px solid #303747;
+    border-radius: 0.3rem;
+}
+
+.lessons-box-header {
+    background-color: #303747;
+    padding: 0.5rem 1rem;
+    color: #ffd737;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.lessons-box-content {
+    margin: 0.5rem;
+    border-radius: 0.3rem;
+}
+
+.lessonListItem {
+    background-color: #c9c9c9;
+    border-radius: 1rem;
+}
+
+.lessonListItemLink {
+    color:#ffd737;
+}
+
+.lessons-box-content li {
+    list-style: none;
+    padding: 0.6rem;
+}
+
+.lessons-box-content li a {
+    text-decoration: none;
+    color: #000;
+    transition: 0.3s;
+    font-weight: bold;
+    font-size: 1rem;
+    font-style: italic;    
+}
+
+.lessons-box-content li a:hover {
+    font-size: 1.2rem;
 }
 
 
@@ -51,9 +117,7 @@ body {
 .schematic-plots {
     display: grid;
     grid-template-columns: 1fr;
-    /* grid-auto-rows: auto; */
     grid-row-gap: 0.5rem;
-    /* height: fit-content; */
 }
 
 
@@ -66,14 +130,14 @@ body {
 
 .inputs-box, .schematic-box, .plots-box {
     margin: 0.5rem;
-    border: 3px solid #facc9d;
+    border: 3px solid #303747;
     border-radius: 0.3rem;
 }
 
 .inputs-box-header, .schematic-box-header, .plots-box-header {
-    background-color: #facc9d;
+    background-color: #303747;
     padding: 0.5rem 1rem;
-    color: #000;
+    color: #ffd737;
     font-size: 1.2rem;
     font-weight: bold;
 }
@@ -256,13 +320,13 @@ body {
 /* ------ output ----- */
 .output-box {
     margin: 0.5rem;
-    border: 3px solid #facc9d;
+    border: 3px solid #303747;
     border-radius: 0.3rem;
 }
 .output-box-header {
-    background-color: #facc9d;
+    background-color: #303747;
     padding: 0.5rem 1rem;
-    color: #000;
+    color: #ffd737;
     font-size: 1.2rem;
     font-weight: bold;
 }
@@ -365,7 +429,7 @@ body {
     text-decoration: none;
     font-style: italic;
     font-size: 0.8rem;
-    color: #fff;
+    color: #ffd737;
     transition: 0.5s;
 }
 
@@ -374,7 +438,7 @@ body {
 }
 
 .plots-list-item a.active {
-    color: #000; 
+    color: #ffd737; 
     font-size: 1rem;
 }
 
@@ -387,7 +451,7 @@ body {
 
 #production-plot, #rta-plot, #rnp-plot, #sqrt-plot {
     width: 100%;
-    border: 5px solid #facc9d;
+    border: 5px solid #303747;
 }
 
 .line {
@@ -460,6 +524,27 @@ body {
   .custom-dot.focus {
     border-radius: 50%;
     background-color: #84f542;
+  }
+
+  /*  --------------- buttons ------------------ */
+  .button {
+    cursor: pointer;
+    border: 3px solid #ffd737;
+    background-color: #303747;
+    padding: .5rem .8rem;
+    border-radius: 1rem;
+    color: #ffd737;
+    font-weight: bold;
+    margin-left: .5rem;
+    transition: 0.5s;
+    transform: scale(0.9);
+  }
+
+  .button:hover {
+    border: 3px solid #303747;
+    background-color: #ffd737;
+    color: #303747;
+    transform: scale(1);
   }
 
 /*  --------------------------------------------------------- media queries ---------------------------------------------------- */

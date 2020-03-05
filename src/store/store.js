@@ -15,10 +15,21 @@ export default new Vuex.Store({
         rnpPlotSlope: null,
         fractureData: null,
         fractureSpacing: null,
-        fractureHalfLength: null
+        fractureHalfLength: null,
+        inputSlidersDisplayList: [],
+        lessonNumber: null
         // initialRangeSlidersValues: null
     },
     mutations: {
+        setDefaultFractureSpacing(state, fracSpacing) {
+            state.fractureSpacing = fracSpacing;
+        },
+        setLessonNumberToBeColored(state, lessonNumber) {
+            state.lessonNumber = lessonNumber;
+        },
+        setInputSlidersListToBeDisplayed(state, inputSlidersDisplayList) {
+            state.inputSlidersDisplayList = inputSlidersDisplayList;
+        },
         // storing the length percentage of each slider in an object when the app is initially loaded
         setColorSliders(state, colors) {
             state.defSlidersColors = colors;
@@ -66,6 +77,12 @@ export default new Vuex.Store({
         // }
     },
     actions: {
+        getLessonNumberToBeColored({ commit }, lessonNumber) {
+            commit('setLessonNumberToBeColored', lessonNumber);
+        },
+        getInputSlidersListToBeDisplayed({ commit }, inputSlidersDisplayList) {
+            commit('setInputSlidersListToBeDisplayed', inputSlidersDisplayList);
+        },
         // slider background color along with all the slider default values when the app is initially loaded
         getColorSliders({ commit }, { userInputs, slidersRange }) {
 
@@ -115,6 +132,10 @@ export default new Vuex.Store({
         // Calculation of rates based on the user inputs
         getCalcPlotsParams({ commit, dispatch }, 
             { porosity, permeability, fracHalfLength, fracHeight, fracSpacing, fracNum, compressibility, resPressure, flowingWellPressure, FVF, viscosity, rate }) {
+
+            // sending the default fracture spacing to the mutation
+            commit('setDefaultFractureSpacing', fracSpacing);
+
             // Calculation of volumetric Oil In Place
             const volumetricHCInPlace = 4 * fracHalfLength * fracSpacing * fracHeight * porosity * fracNum / FVF;
             
@@ -272,6 +293,9 @@ export default new Vuex.Store({
         
     },
     getters: {
+        getLessonNumber(state) {
+            return state.lessonNumber;
+        },
         // getting the sliders length percentage from the state
         defColors(state) {
             return state.defSlidersColors;
@@ -310,6 +334,9 @@ export default new Vuex.Store({
         },
         fractureHalfLength(state) {
             return state.fractureHalfLength;
+        },
+        getInputSlidersDisplayList(state) {
+            return state.inputSlidersDisplayList;
         }
     }
 });
