@@ -71,7 +71,7 @@ export default new Vuex.Store({
         },
         setFractureHalfLength(state, fractureHalfLength) {            
             state.fractureHalfLength = fractureHalfLength;
-        }
+        }  
         // setInitialRangeSlidersValues(state, initialRangeSlidersValues) {
         //     state.initialRangeSlidersValues = initialRangeSlidersValues;
         // }
@@ -84,15 +84,16 @@ export default new Vuex.Store({
             commit('setInputSlidersListToBeDisplayed', inputSlidersDisplayList);
         },
         // slider background color along with all the slider default values when the app is initially loaded
-        getColorSliders({ commit }, { userInputs, slidersRange }) {
+        // getColorSliders({ commit }, { userInputs, slidersRange }) {
+        getColorSliders({ commit }, slidersProperties) {
 
             // calculation of the percentage ((value - min) / (max - min)) of the slider length that should be colored when the app is initially loaded
-            const properties = ['porosity', 'permeability', 'fracHalfLength', 'fracHeight', 'fracSpacing', 'fracNum', 'compressibility', 'resPressure', 'flowingWellPressure', 'FVF', 'viscosity', 'rate'];
             let colors = [];
-            userInputs.map((prop, index) => {                
+            console.log('new prop:', slidersProperties)
+            slidersProperties.map((prop, index) => {  
                 const color = `linear-gradient(90deg, rgb(245, 153, 32)
-                 ${ (prop[properties[index]] - slidersRange[index][properties[index]][0]) / (slidersRange[index][properties[index]][1] - slidersRange[index][properties[index]][0]) * 100 }%,
-                 rgb(255, 255, 255) ${ (prop[properties[index]] - slidersRange[index][properties[index]][0]) / (slidersRange[index][properties[index]][1] - slidersRange[index][properties[index]][0]) * 100 }%)`;
+                 ${ (prop.value - prop.min) / (prop.max - prop.min) * 100 }%,
+                 rgb(255, 255, 255) ${ (prop.value - prop.min) / (prop.max - prop.min) * 100 }%)`;
                 colors.push(color);
             });
             
@@ -126,7 +127,7 @@ export default new Vuex.Store({
             linearRegressionResults['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
             linearRegressionResults['intercept'] = (sum_y - linearRegressionResults.slope * sum_x)/n;
             linearRegressionResults['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
-            // console.log(linearRegressionResults)
+            console.log('slope in store:',linearRegressionResults.slope)
             commit('setTheSlopeOfRNPPlot', linearRegressionResults.slope);
         },
         // Calculation of rates based on the user inputs
@@ -255,6 +256,7 @@ export default new Vuex.Store({
 
             // -------------------------------------- preparing the required data to be sent to the mutation ------------------------------------
             let plotsParams = [];
+
             q.forEach((qi, i) => {
                 let plotParams = {
                     time: time[i],
@@ -275,9 +277,10 @@ export default new Vuex.Store({
                 
                 plotsParams.push(plotParams);
             });            
-            console.log('time:', time)
-            console.log('q:', q)
-            console.log('mbt:', MBT)
+            // console.log('time:', time)
+            // console.log('q:', q)
+            console.log('parameters:',plotsParams)
+
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
         },

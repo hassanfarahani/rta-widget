@@ -26,20 +26,20 @@
                 <div class="properties-title">Rock Properties</div>
                 <div class="properties rock-properties">
                     <!-- porosity -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[0].porosity">
+                    <fragment v-if="modifiedSlidersProperties[0].display">
                         <div class="property-name tooltip">&Phi; <span class="tooltiptext">porosity</span></div>
                         <div class="property-unit">fraction</div>
                         <div class="property-value">
-                            <input type="text" class="user-input" v-model="userInputs[0].porosity" @change="calculatePlotsParameters">
+                            <input type="text" class="user-input" v-model="modifiedSlidersProperties[0].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[0].porosity[0]" 
-                                :max="slidersRange[0].porosity[1]" 
-                                step="0.1" 
+                                :min="modifiedSlidersProperties[0].min" 
+                                :max="modifiedSlidersProperties[0].max" 
+                                :step="modifiedSlidersProperties[0].step" 
                                 id="porosity" 
                                 class="slider" 
-                                v-model="userInputs[0].porosity" 
+                                v-model="modifiedSlidersProperties[0].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[0]}">
@@ -47,20 +47,20 @@
                     </fragment>
 
                     <!-- permeability -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[1].permeability">
+                    <fragment v-if="modifiedSlidersProperties[1].display">
                         <div class="property-name tooltip">K <span class="tooltiptext">permeability</span></div>
                         <div class="property-unit">md</div>
                         <div class="property-value">
-                            <input type="text" class="user-input"  v-model="userInputs[1].permeability" @change="calculatePlotsParameters">
+                            <input type="text" class="user-input"  v-model="modifiedSlidersProperties[1].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[1].permeability[0]" 
-                                :max="slidersRange[1].permeability[1]" 
-                                step="0.001" 
+                                :min="modifiedSlidersProperties[1].min" 
+                                :max="modifiedSlidersProperties[1].max" 
+                                :step="modifiedSlidersProperties[1].step" 
                                 id="permeability" 
                                 class="slider"
-                                v-model="userInputs[1].permeability"
+                                v-model="modifiedSlidersProperties[1].value"
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[1]}">
@@ -68,19 +68,20 @@
                     </fragment>
 
                     <!-- fracture half-length -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[2].fracHalfLength">
+                    <fragment v-if="modifiedSlidersProperties[2].display">
                         <div class="property-name tooltip">X<sub>f</sub> <span class="tooltiptext">effective fracture half-length </span></div>
                         <div class="property-unit">ft</div>
                         <div class="property-value">
-                            <input type="text" value="100" class="user-input" v-model="userInputs[2].fracHalfLength" @change="calculatePlotsParameters">
+                            <input type="text" value="100" class="user-input" v-model="modifiedSlidersProperties[2].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[2].fracHalfLength[0]" 
-                                :max="slidersRange[2].fracHalfLength[1]" 
+                                :min="modifiedSlidersProperties[2].min" 
+                                :max="modifiedSlidersProperties[2].max"
+                                :step="modifiedSlidersProperties[2].step" 
                                 id="fracHalfLength" 
                                 class="slider"
-                                v-model="userInputs[2].fracHalfLength" 
+                                v-model="modifiedSlidersProperties[2].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[2]}">
@@ -88,19 +89,20 @@
                     </fragment>
                     
                     <!-- fracture height -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[3].fracHeight">
+                    <fragment v-if="modifiedSlidersProperties[3].display">
                         <div class="property-name tooltip">h<sub>f</sub> <span class="tooltiptext">effective fracture height</span></div>
                         <div class="property-unit">ft</div>
                         <div class="property-value">
-                            <input type="text" value="100" class="user-input" v-model="userInputs[3].fracHeight" @change="calculatePlotsParameters">
+                            <input type="text" value="100" class="user-input" v-model="modifiedSlidersProperties[3].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[3].fracHeight[0]" 
-                                :max="slidersRange[3].fracHeight[1]" 
+                                :min="modifiedSlidersProperties[3].min" 
+                                :max="modifiedSlidersProperties[3].max"
+                                :step="modifiedSlidersProperties[3].step" 
                                 id="fracHeight" 
                                 class="slider"
-                                v-model="userInputs[3].fracHeight" 
+                                v-model="modifiedSlidersProperties[3].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[3]}">
@@ -108,19 +110,20 @@
                     </fragment>
 
                     <!-- fracture spacing  -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[4].fracSpacing">
+                    <fragment v-if="modifiedSlidersProperties[4].display">
                         <div class="property-name tooltip">y<sub>e</sub> <span class="tooltiptext">fracture spacing</span></div>
                         <div class="property-unit">ft</div>
                         <div class="property-value">
-                            <input type="text" value="100" class="user-input" v-model="userInputs[4].fracSpacing" @change="calculatePlotsParameters">
+                            <input type="text" value="100" class="user-input" v-model="modifiedSlidersProperties[4].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[4].fracSpacing[0]" 
-                                :max="slidersRange[4].fracSpacing[1]" 
+                                :min="modifiedSlidersProperties[4].min" 
+                                :max="modifiedSlidersProperties[4].max" 
+                                :step="modifiedSlidersProperties[4].step"
                                 id="fracSpacing" 
                                 class="slider"
-                                v-model="userInputs[4].fracSpacing" 
+                                v-model="modifiedSlidersProperties[4].value" 
                                 @input="calculateSliderColorPercent"
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[4]}">
@@ -128,19 +131,20 @@
                     </fragment>
 
                     <!-- number of fractures -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[5].fracNum">
+                    <fragment v-if="modifiedSlidersProperties[5].display">
                         <div class="property-name tooltip">n<sub>f</sub> <span class="tooltiptext">number of fractures</span></div>
                         <div class="property-unit"></div>
                         <div class="property-value">
-                            <input type="text" value="1" class="user-input" v-model="userInputs[5].fracNum" @change="calculatePlotsParameters">
+                            <input type="text" value="1" class="user-input" v-model="modifiedSlidersProperties[5].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[5].fracNum[0]" 
-                                :max="slidersRange[5].fracNum[1]" 
+                                :min="modifiedSlidersProperties[5].min" 
+                                :max="modifiedSlidersProperties[5].max"
+                                :step="modifiedSlidersProperties[5].step" 
                                 id="fracNum" 
                                 class="slider"
-                                v-model="userInputs[5].fracNum" 
+                                v-model="modifiedSlidersProperties[5].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[5]}">
@@ -148,20 +152,20 @@
                     </fragment>
                     
                     <!-- compressibility -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[6].compressibility">
+                    <fragment v-if="modifiedSlidersProperties[6].display">
                         <div class="property-name tooltip">C<sub>t</sub> <span class="tooltiptext">total compressibility</span></div>
                         <div class="property-unit">1/psi</div>
                         <div class="property-value">
-                            <input type="text" value="5E-05" class="user-input" v-model="userInputs[6].compressibility" @change="calculatePlotsParameters">
+                            <input type="text" value="5E-05" class="user-input" v-model="modifiedSlidersProperties[6].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[6].compressibility[0]" 
-                                :max="slidersRange[6].compressibility[1]" 
-                                step="10E-06" 
+                                :min="modifiedSlidersProperties[6].min" 
+                                :max="modifiedSlidersProperties[6].max" 
+                                :step="modifiedSlidersProperties[6].step" 
                                 id="compressibility" 
                                 class="slider"
-                                v-model="userInputs[6].compressibility" 
+                                v-model="modifiedSlidersProperties[6].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[6]}">
@@ -172,19 +176,20 @@
                 <div class="properties-title">Fluid Properties</div>
                 <div class="properties rock-properties">
                     <!-- reservoir pressure -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[7].resPressure">
+                    <fragment v-if="modifiedSlidersProperties[7].display">
                         <div class="property-name tooltip">P<sub>i</sub> <span class="tooltiptext">initial reservoir pressure</span></div>
                         <div class="property-unit">psia</div>
                         <div class="property-value">
-                            <input type="text" value="5000" class="user-input" v-model="userInputs[7].resPressure" @change="calculatePlotsParameters">
+                            <input type="text" value="5000" class="user-input" v-model="modifiedSlidersProperties[7].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[7].resPressure[0]" 
-                                :max="slidersRange[7].resPressure[1]" 
+                                :min="modifiedSlidersProperties[7].min" 
+                                :max="modifiedSlidersProperties[7].max" 
+                                :step="modifiedSlidersProperties[7].step"
                                 id="resPressure" 
                                 class="slider"
-                                v-model="userInputs[7].resPressure" 
+                                v-model="modifiedSlidersProperties[7].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[7]}">
@@ -192,19 +197,20 @@
                     </fragment>
 
                     <!-- flowing wellbore pressure -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[8].flowingWellPressure">
+                    <fragment v-if="modifiedSlidersProperties[8].display">
                         <div class="property-name tooltip">P<sub>wf</sub> <span class="tooltiptext">measured sandface pressure</span></div>
                         <div class="property-unit">psia</div>
                         <div class="property-value">
-                            <input type="text" value="1000" class="user-input" v-model="userInputs[8].flowingWellPressure" @change="calculatePlotsParameters">
+                            <input type="text" value="1000" class="user-input" v-model="modifiedSlidersProperties[8].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[8].flowingWellPressure[0]" 
-                                :max="slidersRange[8].flowingWellPressure[1]" 
+                                :min="modifiedSlidersProperties[8].min" 
+                                :max="modifiedSlidersProperties[8].max"
+                                :step="modifiedSlidersProperties[8].step" 
                                 id="flowingWellPressure" 
                                 class="slider"
-                                v-model="userInputs[8].flowingWellPressure" 
+                                v-model="modifiedSlidersProperties[8].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[8]}">
@@ -212,20 +218,20 @@
                     </fragment>
 
                     <!-- FVF -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[9].FVF">
+                    <fragment v-if="modifiedSlidersProperties[9].display">
                         <div class="property-name tooltip">B<sub>o</sub> <span class="tooltiptext">formation volume factor</span></div>
                         <div class="property-unit">rb/STB</div>
                         <div class="property-value">
-                            <input type="text" value="1.2" class="user-input" v-model="userInputs[9].FVF" @change="calculatePlotsParameters">
+                            <input type="text" value="1.2" class="user-input" v-model="modifiedSlidersProperties[9].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[9].FVF[0]" 
-                                :max="slidersRange[9].FVF[1]" 
-                                step="0.1" 
+                                :min="modifiedSlidersProperties[9].min" 
+                                :max="modifiedSlidersProperties[9].max" 
+                                :step="modifiedSlidersProperties[9].step" 
                                 id="FVF" 
                                 class="slider"
-                                v-model="userInputs[9].FVF" 
+                                v-model="modifiedSlidersProperties[9].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[9]}">
@@ -233,20 +239,20 @@
                     </fragment>
                     
                     <!-- viscosity -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[10].viscosity">
+                    <fragment v-if="modifiedSlidersProperties[10].display">
                         <div class="property-name tooltip">&mu;<sub>o</sub> <span class="tooltiptext">viscosity</span></div>
                         <div class="property-unit">cp</div>
                         <div class="property-value">
-                            <input type="text" value="0.5" class="user-input" v-model="userInputs[10].viscosity" @change="calculatePlotsParameters">
+                            <input type="text" value="0.5" class="user-input" v-model="modifiedSlidersProperties[10].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[10].viscosity[0]" 
-                                :max="slidersRange[10].viscosity[1]" 
-                                step="0.1" 
+                                :min="modifiedSlidersProperties[10].min" 
+                                :max="modifiedSlidersProperties[10].max" 
+                                :step="modifiedSlidersProperties[10].step" 
                                 id="viscosity" 
                                 class="slider"
-                                v-model="userInputs[10].viscosity" 
+                                v-model="modifiedSlidersProperties[10].value" 
                                 @input="calculateSliderColorPercent" 
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[10]}">
@@ -254,20 +260,20 @@
                     </fragment>
                     
                     <!-- abondoned rate -->
-                    <fragment v-if="currentInputSlidersListToBeDisplayed[11].rate">
+                    <fragment v-if="modifiedSlidersProperties[11].display">
                         <div class="property-name tooltip">q<sub>ab</sub> <span class="tooltiptext">abondoned rate</span></div>
                         <div class="property-unit">STB/D</div>
                         <div class="property-value">
-                            <input type="text" value="0.5" class="user-input" v-model="userInputs[11].rate" @change="calculatePlotsParameters">
+                            <input type="text" value="0.5" class="user-input" v-model="modifiedSlidersProperties[11].value" @change="calculatePlotsParameters">
                         </div>
                         <div class="property-slider">
                             <input type="range" 
-                                :min="slidersRange[11].rate[0]" 
-                                :max="slidersRange[11].rate[1]" 
-                                step="0.01" 
+                                :min="modifiedSlidersProperties[11].min" 
+                                :max="modifiedSlidersProperties[11].max" 
+                                :step="modifiedSlidersProperties[11].step" 
                                 id="rate" 
                                 class="slider"
-                                v-model="userInputs[11].rate" 
+                                v-model="modifiedSlidersProperties[11].value" 
                                 @input="calculateSliderColorPercent"
                                 @change="calculatePlotsParameters" 
                                 :style="{ background: color[11]}">
@@ -310,103 +316,163 @@ export default {
   name: 'Inputs',
     data() {
         return {
-            inputSlidersDisplayList: [
-                { porosity: true },
-                { permeability: true },
-                { fracHalfLength: true },
-                { fracHeight: true },
-                { fracSpacing: true },
-                { fracNum: true },
-                { compressibility: true },
-                { resPressure: true },
-                { flowingWellPressure: true },
-                { FVF: true },
-                { viscosity: true },
-                { rate: true }
-            ],
-            // The default input values (along with default input range of slider ) when the app is initially loaded on the page
-            userInputs: [
-                { porosity: 0.01 },
-                { permeability: 0.002 },
-                { fracHalfLength: 50 },
-                { fracHeight: 50 },
-                { fracSpacing: 100 },
-                { fracNum: 1 },
-                { compressibility: 5E-05 },
-                { resPressure: 5000 },
-                { flowingWellPressure: 500 },
-                { FVF: 1.2 },
-                { viscosity: 0.3 },
-                { rate: 0.05 }
-            ],
-            // min & max values of each property
-            slidersRange: [
-                { porosity: [0, 1] },
-                { permeability: [0.001, 0.01] },
-                { fracHalfLength: [50, 200] },
-                { fracHeight: [50, 200] },
-                { fracSpacing: [40, 300] },
-                { fracNum: [1, 100] },
-                { compressibility: [1E-06, 200E-05] },
-                { resPressure: [100, 10000] },
-                { flowingWellPressure: [100, 10000] },
-                { FVF: [1, 2] },
-                { viscosity: [0, 1] },
-                { rate: [0, 10] }
-            ],
+            // The default input values along with default input range of sliders, their steps when the app is initially loaded on the page 
+            slidersProperties: [
+                { 
+                  name: 'porosity',
+                  value: 0.01,
+                  min: 0,
+                  max: 1,
+                  step: 0.1
+                },
+                { 
+                  name: 'permeability',
+                  value: 0.002,
+                  min: 0.001,
+                  max: 0.1,
+                  step: 0.001
+                },
+                { 
+                  name: 'fracHalfLength',
+                  value: 50,
+                  min: 50,
+                  max: 200,
+                  step: 1
+                },
+                { 
+                  name: 'fracHeight',
+                  value: 50,
+                  min: 50,
+                  max: 200,
+                  step: 1
+                },
+                { 
+                  name: 'fracSpacing',
+                  value: 100,
+                  min: 10,
+                  max: 300,
+                  step: 1
+                },
+                { 
+                  name: 'fracNum',
+                  value: 1,
+                  min: 1,
+                  max: 100,
+                  step: 1
+                },
+                { 
+                  name: 'compressibility',
+                  value: 5E-05,
+                  min: 1E-06, 
+                  max: 200E-05,
+                  step: 10E-06
+                },
+                { 
+                  name: 'resPressure',
+                  value: 5000,
+                  min: 100, 
+                  max: 10000,
+                  step: 1
+                },
+                { 
+                  name: 'flowingWellPressure',
+                  value: 500,
+                  min: 100, 
+                  max: 10000,
+                  step: 1
+                },
+                { 
+                  name: 'FVF',
+                  value: 1.2,
+                  min: 1, 
+                  max: 2,
+                  step: 0.1
+                },
+                { 
+                  name: 'viscosity',
+                  value: 0.3,
+                  min: 0, 
+                  max: 1,
+                  step: 0.1
+                },
+                { 
+                  name: 'rate',
+                  value: 0.05,
+                  min: 0, 
+                  max: 10,
+                  step: 0.01
+                }
+            ]
+            
         }
     },
     computed: {
         currentInputSlidersListToBeDisplayed() {
             return this.$store.getters.getInputSlidersDisplayList;
         },
+        modifiedSlidersProperties() {
+            this.slidersProperties[0].display = this.currentInputSlidersListToBeDisplayed[0].porosity;
+            this.slidersProperties[1].display = this.currentInputSlidersListToBeDisplayed[1].permeability;
+            this.slidersProperties[2].display = this.currentInputSlidersListToBeDisplayed[2].fracHalfLength;
+            this.slidersProperties[3].display = this.currentInputSlidersListToBeDisplayed[3].fracHeight;
+            this.slidersProperties[4].display = this.currentInputSlidersListToBeDisplayed[4].fracSpacing;
+            this.slidersProperties[5].display = this.currentInputSlidersListToBeDisplayed[5].fracNum;
+            this.slidersProperties[6].display = this.currentInputSlidersListToBeDisplayed[6].compressibility;
+            this.slidersProperties[7].display = this.currentInputSlidersListToBeDisplayed[7].resPressure;
+            this.slidersProperties[8].display = this.currentInputSlidersListToBeDisplayed[8].flowingWellPressure;
+            this.slidersProperties[9].display = this.currentInputSlidersListToBeDisplayed[9].FVF;
+            this.slidersProperties[10].display = this.currentInputSlidersListToBeDisplayed[10].viscosity;
+            this.slidersProperties[11].display = this.currentInputSlidersListToBeDisplayed[11].rate;
+
+            return this.slidersProperties;
+        },
         // the color percent (in order to style each slider ) of different sliders to determine the background color of each slider when the app is initially loaded or when the user change the slider
         color() {
             return this.$store.getters.defColors;         
         },
-        defaultInputDataValues() {
+        inputDataValues() {
             return {
-                porosity: this.userInputs[0].porosity,
-                permeability: this.userInputs[1].permeability,
-                fracHalfLength: this.userInputs[2].fracHalfLength,
-                fracHeight: this.userInputs[3].fracHeight,
-                fracSpacing: this.userInputs[4].fracSpacing,
-                fracNum: this.userInputs[5].fracNum,
-                compressibility: this.userInputs[6].compressibility,
-                resPressure: this.userInputs[7].resPressure,
-                flowingWellPressure: this.userInputs[8].flowingWellPressure,
-                FVF: this.userInputs[9].FVF,
-                viscosity: this.userInputs[10].viscosity,
-                rate: this.userInputs[11].rate
+                porosity: this.slidersProperties[0].value,
+                permeability: this.slidersProperties[1].value,
+                fracHalfLength: this.slidersProperties[2].value,
+                fracHeight: this.slidersProperties[3].value,
+                fracSpacing: this.slidersProperties[4].value,
+                fracNum: this.slidersProperties[5].value,
+                compressibility: this.slidersProperties[6].value,
+                resPressure: this.slidersProperties[7].value,
+                flowingWellPressure: this.slidersProperties[8].value,
+                FVF: this.slidersProperties[9].value,
+                viscosity: this.slidersProperties[10].value,
+                rate: this.slidersProperties[11].value
             }
         },
         // calculation of volumetric hydrocarbon in place using user input parameters
         volumetricHCInPlace() {
-            const N = 4 * this.userInputs[2].fracHalfLength * this.userInputs[4].fracSpacing * this.userInputs[3].fracHeight * this.userInputs[0].porosity * this.userInputs[5].fracNum / (this.userInputs[9].FVF * 5.615);
+            const N = 4 * this.modifiedSlidersProperties[2].value * this.modifiedSlidersProperties[4].value * this.modifiedSlidersProperties[3].value * this.modifiedSlidersProperties[0].value * this.modifiedSlidersProperties[5].value / (this.modifiedSlidersProperties[9].value * 5.615);
             return N.toFixed(2);
         },
         endOfHalfSlopeLineTime() {
-            const tehs = (this.userInputs[0].porosity * this.userInputs[10].viscosity * this.userInputs[6].compressibility / this.userInputs[1].permeability) * Math.pow((this.userInputs[4].fracSpacing / 0.1591) , 2);
+            const tehs = (this.modifiedSlidersProperties[0].value * this.modifiedSlidersProperties[10].value * this.modifiedSlidersProperties[6].value / this.modifiedSlidersProperties[1].value) * Math.pow((this.modifiedSlidersProperties[4].value / 0.1591) , 2);
             return tehs.toFixed(2);
         },
         hcInPlaceFromRNPPlot() {
             const slope = this.$store.getters.rnpPlotSlope;
-            const mbtHcInPlace = 1 / (slope * this.userInputs[6].compressibility) * this.userInputs[5].fracNum;
+            console.log('slope:', slope)
+            const mbtHcInPlace = 1 / (slope * this.modifiedSlidersProperties[6].value) * this.modifiedSlidersProperties[5].value;
             return mbtHcInPlace.toFixed(2);
         }
     },
     created() {
         // determining the slider background color by dispatching 'getColorSliders' action along with default values data
-        const colorData = { userInputs: this.userInputs, slidersRange: this.slidersRange };
-        this.$store.dispatch('getColorSliders', colorData);
+        this.$store.dispatch('getColorSliders', this.modifiedSlidersProperties);
 
-        this.$store.dispatch('getCalcPlotsParams', this.defaultInputDataValues);
+        // this.$store.dispatch('getCalcPlotsParams', this.defaultInputDataValues);
+        this.$store.dispatch('getCalcPlotsParams', this.inputDataValues);
     },
     methods: {
         // slider background color when the user change the slider
         calculateSliderColorPercent(e) { 
-            const data = { userInputs: this.userInputs, slidersRange: this.slidersRange };
-            this.$store.dispatch('getColorSliders', data);
+            this.$store.dispatch('getColorSliders', this.modifiedSlidersProperties);
             
             // const fractureData = {
             //     fractureSpacing: this.userInputs[4].fracSpacing,
@@ -415,31 +481,15 @@ export default {
             //     fractureFrequency: this.userInputs[5].fracNum
             // };
             // this.$store.dispatch('getFractureData', fractureData);
-            this.$store.dispatch('getFractureSpacing', this.userInputs[4].fracSpacing);
-            this.$store.dispatch('getFractureHalfLength', this.userInputs[2].fracHalfLength);
+
+            this.$store.dispatch('getFractureSpacing', this.modifiedSlidersProperties[4].value);
+            this.$store.dispatch('getFractureHalfLength', this.modifiedSlidersProperties[2].value);
         },
         calculatePlotsParameters(e) { 
             //quality check of the user input data
-
-            let newData = {
-                porosity: parseFloat(this.userInputs[0].porosity),
-                permeability: parseFloat(this.userInputs[1].permeability),
-                fracHalfLength: parseFloat(this.userInputs[2].fracHalfLength),
-                fracHeight: parseFloat(this.userInputs[3].fracHeight),
-                fracSpacing: parseFloat(this.userInputs[4].fracSpacing),
-                fracNum: parseFloat(this.userInputs[5].fracNum),
-                compressibility: parseFloat(this.userInputs[6].compressibility),
-                resPressure: parseFloat(this.userInputs[7].resPressure),
-                flowingWellPressure: parseFloat(this.userInputs[8].flowingWellPressure),
-                FVF: parseFloat(this.userInputs[9].FVF),
-                viscosity: parseFloat(this.userInputs[10].viscosity),
-                rate: parseFloat(this.userInputs[11].rate)
-            };
             
-            // console.log(newData)
-            
-            // // calculation of different plots parameters by dispatching an action along with user input data
-            this.$store.dispatch('getCalcPlotsParams', newData);
+            // calculation of different plots parameters by dispatching an action along with user input data
+            this.$store.dispatch('getCalcPlotsParams', this.inputDataValues);
         },
         goToAllLessonsList() {
             this.$router.push({ name: 'Lessons'});

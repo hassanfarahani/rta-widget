@@ -142,8 +142,8 @@ export const plotsMixin = {
             .attr('id', `svg-${svgIdPart}`);
 
         const g = svg.append('g')
-        .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
-        .attr('margin', 'auto')
+            .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
+            .attr('margin', 'auto')
         
         // Scales
         let xScale;
@@ -200,35 +200,35 @@ export const plotsMixin = {
         let verticalLineLabel;
 
         if (plotType === 'productionPlot') {
-        xAxisLabel = 'Time (days)';
-        yAxisLabel = 'Rate (STBD)';
-        xAxisParam = 'time';
-        yAxisParam = 'q';
-        verticalLineLabel = 't@elf';
+            xAxisLabel = 'Time (days)';
+            yAxisLabel = 'Rate (STBD)';
+            xAxisParam = 'time';
+            yAxisParam = 'q';
+            verticalLineLabel = 't@elf';
         }
 
         if (plotType === 'rtaPlot') {
-        xAxisLabel = 'MBT (stb/stbd)';
-        yAxisLabel = 'Rate (STBD)';
-        xAxisParam = 'MBT';
-        yAxisParam = 'q';
-        verticalLineLabel = 'MBT@elf';
+            xAxisLabel = 'MBT (stb/stbd)';
+            yAxisLabel = 'Rate (STBD)';
+            xAxisParam = 'MBT';
+            yAxisParam = 'q';
+            verticalLineLabel = 'MBT@elf';
         }
 
         if (plotType === 'rnpPlot') {
-        xAxisLabel = 'MBT (stb/stbd)';
-        yAxisLabel = '(Pi - Pwf)/q';
-        xAxisParam = 'MBT';
-        yAxisParam = 'RNP';
-        verticalLineLabel = 'MBT@elf';
+            xAxisLabel = 'MBT (stb/stbd)';
+            yAxisLabel = '(Pi - Pwf)/q';
+            xAxisParam = 'MBT';
+            yAxisParam = 'RNP';
+            verticalLineLabel = 'MBT@elf';
         }
 
         if (plotType === 'sqrtPlot') {
-        xAxisLabel = 'sqrt(t)';
-        yAxisLabel = '(Pi - Pwf)/q';
-        xAxisParam = 't_sqrt';
-        yAxisParam = 'RNP';
-        verticalLineLabel = 'sqrt(t)@elf';
+            xAxisLabel = 'sqrt(t)';
+            yAxisLabel = '(Pi - Pwf)/q';
+            xAxisParam = 't_sqrt';
+            yAxisParam = 'RNP';
+            verticalLineLabel = 'sqrt(t)@elf';
         }
 
         // const t = () => d3.transition().duration(1000);    
@@ -258,7 +258,7 @@ export const plotsMixin = {
         svgId.shift();
         return svgId.join('');
     },
-    lineGenerator(xAxisParam, yAxisParam, xScale, yScale) {
+    lineGenerator(xAxisParam, yAxisParam, xScale, yScale) {  // [{}, {}, ...]
         let path = d3.line()
                 .x(d => xScale(d[xAxisParam]))
                 .y(d => yScale(d[yAxisParam]));
@@ -299,6 +299,17 @@ export const plotsMixin = {
         // Path generator
         let pathGenerator = this.lineGenerator(xAxisParam, yAxisParam, xScale, yScale);
 
+        // Making x & y ranges of logarithmic graphs start from 1 if they are starting from zero in order for d3 to be able to generate path
+        if (plotType === 'rtaPlot' || plotType === 'sqrtPlot') {
+            if (xAxisExtremse[0] === 0) {
+                xAxisExtremse[0] = 1;
+            }
+    
+            if (yAxisExtremse[0] === 0) {
+                yAxisExtremse[0] = 1;
+            }
+        };
+
         xScale.domain(xAxisExtremse);
         yScale.domain(yAxisExtremse);
 
@@ -315,8 +326,6 @@ export const plotsMixin = {
         yAxisCall.scale(yScale);
         yAxis.call(yAxisCall);
 
-        console.log('before line path:', data)
-
         // opacity values to be applied on a multiline chart
         const opacityValues = [1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55,0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1];
 
@@ -327,7 +336,8 @@ export const plotsMixin = {
         for (let i=0; i<dataLength; i++) {            
             selectedOpacities.push(opacityValues[i * increaseInNextSelectedIndexOfOpacityValuesArray]);
         };
-        selectedOpacities = selectedOpacities.reverse(); 
+        selectedOpacities = selectedOpacities.reverse();
+        console.log('selcted opa:', selectedOpacities)
         
         // Add a clipPath: everything out of this area won't be drawn
         g.append('defs')
@@ -338,66 +348,55 @@ export const plotsMixin = {
                 .attr('y', 0)
                 .attr('width', this.innerWidth)
                 .attr('height', this.innerHeight);
+
+        
+        // Create the area variable: where both the area and the brush take place
+        let main = g.append('g')
+        .attr('class', 'main')
+        .attr('clip-path', 'url(#clip)');
         
         // Add brushing
         var brush = d3.brush()
         // .extent( [ [0,0], [this.innerWidth,this.innerHeight] ] )
-        .on("end", () => {           
-
+        .on("end", () => {   
+            
             var s = d3.event.selection;
-            console.log('s:', s)
   
             if (!s) {
               if (!idleTimeout) return idleTimeout = setTimeout(idled, idleDelay);
                 xScale.domain(xAxisExtremse);
                 yScale.domain(yAxisExtremse);
             } else {
-                console.log('x0:',xScale.invert(s[0][0]))
-                console.log('x1:',xScale.invert(s[1][0]))
-                xScale.domain([xScale.invert(s[0][0]), xScale.invert(s[1][0])]);
-                // xScale.domain([s[0][0] * this.innerHeight/this.innerWidth, s[1][0]].map(xScale.invert, xScale));               
+                // xScale.domain([xScale.invert(s[0][0]), xScale.invert(s[1][0])]);
+                xScale.domain([s[0][0] * this.innerHeight/this.innerWidth, s[1][0]].map(xScale.invert, xScale));               
                 yScale.domain([s[1][1], s[0][1] * this.innerHeight/this.innerWidth].map(yScale.invert, yScale));
 
-                //  yScale.domain([yScale.invert(s[1][1]), yScale.invert(s[0][1])]);
-                svg.select(".brush").call(brush.move, null);
+                g.select(".brush").call(brush.move, null);
             }
             // zoom();
-            var t = svg.transition().duration(750);
-            svg.select(".x--axis").transition(t).call(xAxisCall);
+            var t = g.transition().duration(750);
+            g.select(".x--axis").transition(t).call(xAxisCall);
             g.select(".y--axis").transition(t).call(yAxisCall);
 
-            g.selectAll(".line").transition(t)
-                .attr("d", d => pathGenerator(d))
-                // .attr("d", pathGenerator)
-                // .attr('stroke', (d, index) => 'green')
-                // .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
-                // .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
-                // .style('fill','none')
+            main.selectAll('.line').transition(t)
+                .attr('class', 'line')
+                // .attr("d", d => pathGenerator(d))
+                .attr('d', pathGenerator)
+                .attr('stroke', (d, index) => 'green')
+                .attr('stroke-opacity', (d, index) =>  `${selectedOpacities[index]}`)
+                .style('stroke-dasharray', (d, index) => index === data.length-1 ? '' : '5 5')
+                .style('fill','none');
         }),
 
         idleTimeout,
-        idleDelay = 350;
-
-        // Create the area variable: where both the area and the brush take place
-        var main = g.append('g')
-        .attr('class', 'main')
-        .attr('clip-path', 'url(#clip)');
-    
-        // var drag = d3.drag().on('drag', () => {
-        //     console.log('drag:', d3.event.x)
-        //     d3.selectAll('.line')
-        //     .attr('transform', `translate(${d3.event.x}, ${d3.event.y})`);
-        //     g.select(".axis--x").call(xAxisCall);
-        //     g.select(".axis--y").call(yAxisCall);
-        // });
+        idleDelay = 350;  
         
-        svg.append("g")
+        g.append("g")
             .attr("class", "brush")
             .call(brush);  
 
        // add tooltip to the plot when user hover 
-       this.addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam)
-
+       this.addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam);
 
         // Update our line path
         // const lines = g.selectAll('.line').data(data)
@@ -415,24 +414,26 @@ export const plotsMixin = {
         var idleTimeout
         function idled() { idleTimeout = null; }
       
-        // line chart animation
-        let totalLength = [];
-        lines._groups[0].forEach(path => {
-            totalLength.push(path.getTotalLength());
-        });
+        // // line chart animation
+        // console.log('lines:', lines)
+        // let totalLength = [];
+        // lines._groups[0].forEach(path => {
+        //     totalLength.push(path.getTotalLength());
+        // });
 
-        lines._groups[0].forEach((path, i) => {
-            d3.select(path)
-            .attr('stroke-dasharray', totalLength[i] + ' ' + totalLength[i])
-            .attr('stroke-dashoffset', totalLength[i])
-            .transition()
-                .duration(1000)
-                // .ease('linear')
-                .attr("stroke-dashoffset", 0);
-        });
+        // console.log('total length:', totalLength)
+        // lines._groups[0].forEach((path, i) => {
+        //     d3.select(path)
+        //     .attr('stroke-dasharray', totalLength[i] + ' ' + totalLength[i])
+        //     .attr('stroke-dashoffset', totalLength[i])
+        //     .transition()
+        //         .duration(1000)
+        //         // .ease('linear')
+        //         .attr("stroke-dashoffset", 0);
+        // });
 
 
-        // insertion of end of linear flow time line into the plots
+        // // insertion of end of linear flow time line into the plots
         // this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel); 
     },  
     addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam) { 
@@ -453,7 +454,8 @@ export const plotsMixin = {
             .data(data)
             .enter()
             .append('g')
-            .attr('class', 'mouse-per-line');
+            .attr('class', 'mouse-per-line')
+            // .style('opacity', '0');
 
         mousePerLine.append('circle')
             .attr('r', 3)
@@ -468,11 +470,10 @@ export const plotsMixin = {
 
         // g.append('rect') // append a rect to catch mouse movements on canvas
         svg.select('.overlay') // append a rect to catch mouse movements on canvas
-        .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
         .attr('margin', 'auto')
         .attr('width', this.innerWidth) // can't catch mouse events on a g element
         .attr('height', innerHeight)
-        .attr('fill', 'none')
+        // .attr('fill', 'none')
         .attr('pointer-events', 'all')
         .on('mouseout', () => { // on mouse out hide line, circles and text
           d3.selectAll('.mouse-line')
@@ -490,16 +491,19 @@ export const plotsMixin = {
             .style('opacity', '1');
           d3.selectAll('.mouse-per-line text')
             .style('opacity', '1');
-            mouseG.style('display', null)
+            mouseG.style('display', 'block')
         })
         .on('mousemove', function() { // mouse moving over canvas
+        //   mouseG.style('display', 'block')
           let mouse = d3.mouse(this);
           d3.selectAll('.mouse-line')
+            .style('opacity', '1')
             .attr('d', () => {
               let d = `M${mouse[0]},${innerHeight}`;
               d += ` ${ mouse[0]},${0}`;   
               return d;
-            });
+            })
+            
 
           d3.selectAll('.mouse-per-line')
             .attr('transform', function(d, i) {
@@ -520,8 +524,8 @@ export const plotsMixin = {
               };             
               
               d3.select(this).select('text')
-                .text(yScale.invert(pos.y).toFixed(2));
-                // .text(`${xScale.invert(pos.x).toFixed(1)}, ${yScale.invert(pos.y).toFixed(2)}`);
+                // .text(yScale.invert(pos.y).toFixed(2));
+                .text(`(${xScale.invert(pos.x).toFixed(2)} - ${yScale.invert(pos.y).toFixed(2)})`);
                 
               return `translate(${mouse[0]},${pos.y})`;
             });
