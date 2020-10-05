@@ -4,7 +4,7 @@ import Vuex from 'vuex'
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-    state: {   
+    state: {
         // userInputs: [], // an array of objects including the user inputs values
         defSlidersColors: null, // sliders length percentage : an array of strings
         plotsParams: [],  // an array of arrays contains the required parameters to make different plots
@@ -43,7 +43,7 @@ export default new Vuex.Store({
             state.defSlidersColors = colorData;
         },
         setCalcPlotsParams(state, plotsParams) {
-            state.plotsParams.push(plotsParams);  
+            state.plotsParams.push(plotsParams);
         },
         setSliderValues(state, updatedSliderData) {
             if (updatedSliderData.plotType === 'productionPlot') {
@@ -66,12 +66,12 @@ export default new Vuex.Store({
         setFractureData(state, fractureData) {
             state.fractureData = fractureData;
         },
-        setFractureSpacing(state, fractureSpacing) {            
+        setFractureSpacing(state, fractureSpacing) {
             state.fractureSpacing = fractureSpacing;
         },
-        setFractureHalfLength(state, fractureHalfLength) {            
+        setFractureHalfLength(state, fractureHalfLength) {
             state.fractureHalfLength = fractureHalfLength;
-        }  
+        }
         // setInitialRangeSlidersValues(state, initialRangeSlidersValues) {
         //     state.initialRangeSlidersValues = initialRangeSlidersValues;
         // }
@@ -90,18 +90,18 @@ export default new Vuex.Store({
             // calculation of the percentage ((value - min) / (max - min)) of the slider length that should be colored when the app is initially loaded
             let colors = [];
             console.log('new prop:', slidersProperties)
-            slidersProperties.map((prop, index) => {  
+            slidersProperties.map((prop, index) => {
                 const color = `linear-gradient(90deg, rgb(245, 153, 32)
                  ${ (prop.value - prop.min) / (prop.max - prop.min) * 100 }%,
                  rgb(255, 255, 255) ${ (prop.value - prop.min) / (prop.max - prop.min) * 100 }%)`;
                 colors.push(color);
             });
-            
+
             // sending the length percentage of all sliders with commiting the mutation wlong with the related color data
             commit('setColorSliders', colors);
             // commit('setUserInputsValues', userInputs); // userInputs: an array of objects ==> sending the user inputs values to the mutation
         },
-        // getting the new user input values of the input slider 
+        // getting the new user input values of the input slider
         getSliderValues({ commit }, updatedSliderData) {
             commit('setSliderValues', updatedSliderData);
         },
@@ -114,16 +114,16 @@ export default new Vuex.Store({
             let sum_xy = 0;
             let sum_xx = 0;
             let sum_yy = 0;
-        
+
             for (let i = 0; i < RNPDataPoints.length; i++) {
-        
+
                 sum_x += MBTDataPoints[i];
                 sum_y += RNPDataPoints[i];
                 sum_xy += (MBTDataPoints[i]*RNPDataPoints[i]);
                 sum_xx += (MBTDataPoints[i]*MBTDataPoints[i]);
                 sum_yy += (RNPDataPoints[i]*RNPDataPoints[i]);
-            } 
-        
+            }
+
             linearRegressionResults['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
             linearRegressionResults['intercept'] = (sum_y - linearRegressionResults.slope * sum_x)/n;
             linearRegressionResults['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
@@ -131,7 +131,7 @@ export default new Vuex.Store({
             commit('setTheSlopeOfRNPPlot', linearRegressionResults.slope);
         },
         // Calculation of rates based on the user inputs
-        getCalcPlotsParams({ commit, dispatch }, 
+        getCalcPlotsParams({ commit, dispatch },
             { porosity, permeability, fracHalfLength, fracHeight, fracSpacing, fracNum, compressibility, resPressure, flowingWellPressure, FVF, viscosity, rate }) {
 
             // sending the default fracture spacing to the mutation
@@ -139,10 +139,10 @@ export default new Vuex.Store({
 
             // Calculation of volumetric Oil In Place
             const volumetricHCInPlace = 4 * fracHalfLength * fracSpacing * fracHeight * porosity * fracNum / FVF;
-            
+
             // ---------------------------------------- calculation of end of half-slope line time (tehs) --------------------------------------------
             const tehs = (porosity * viscosity * compressibility / permeability) * Math.pow((fracSpacing / 0.1591) , 2);
-           
+
             // in case of high perm reservoir, in which tehs is relatively short
             let timeRange;
             if (tehs <= 10) {
@@ -156,11 +156,11 @@ export default new Vuex.Store({
             // the time step on the plots
             const deltaT = Math.ceil(timeRange / 250);
 
-            
+
             // --------------------------------- calculation of time axis & its range ==> time array ----------------------------------------------------
             let endTime = 2 * timeRange ; // end of x axis (time)
             // let endTime = tehs + tehs/2; // end of x axis (time)
-            let tDxe = [];  // dimensionless time array contains dimensionless time value for each specific time tDxe          
+            let tDxe = [];  // dimensionless time array contains dimensionless time value for each specific time tDxe
             let time = []; // time array
             for (let t=1; t <= endTime; t=t+deltaT) {
                 // tDxi === dimensionless time in a one specific t
@@ -177,7 +177,7 @@ export default new Vuex.Store({
             }
             time[tehsIndexInTimeArray] = parseFloat(tehs.toFixed(3));
 
-            // sum calculation (exponential term) in Equation 3 
+            // sum calculation (exponential term) in Equation 3
             const n_max = 73;
             let sum = [];
             tDxe.forEach(tDxi => {
@@ -274,12 +274,12 @@ export default new Vuex.Store({
                         q: q[tehsIndexInTimeArray]
                     }
                 };
-                
+
                 plotsParams.push(plotParams);
-            });            
+            });
             // console.log('time:', time)
             // console.log('q:', q)
-            console.log('parameters:',plotsParams)
+            console.log('plotsParams:', plotsParams)
 
             // commiting the mutation
             commit('setCalcPlotsParams', plotsParams);
@@ -293,7 +293,7 @@ export default new Vuex.Store({
         getFractureHalfLength({ commit }, fractureHalfLength) {
             commit('setFractureHalfLength', fractureHalfLength);
         }
-        
+
     },
     getters: {
         getLessonNumber(state) {

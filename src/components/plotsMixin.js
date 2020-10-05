@@ -16,13 +16,14 @@ export const plotsMixin = {
       },
     computed: {
         plotsParams() {
+            console.log('plotsparams state:', this.$store.getters.newPlotsParameters)
             return this.$store.getters.newPlotsParameters;
         },
         innerWidth() {
             return this.width - this.margin.left - this.margin.right;
         },
         innerHeight() {
-            return this.width - this.margin.top - this.margin.bottom;
+            return this.height - this.margin.top - this.margin.bottom;
         },
         productionPlotSliderValues() {
             return this.$store.getters.productionPlotSliderValues;
@@ -38,7 +39,7 @@ export const plotsMixin = {
         }
     },
     watch: {
-        plotsParams(val) {      
+        plotsParams(val) {
             // this.updateLoadPlots('#production-plot', 'productionPlot', val);
 
             // this.updateLoadPlots('#rta-plot', 'rtaPlot', val);
@@ -49,7 +50,7 @@ export const plotsMixin = {
     },
     productionPlotSliderValues(updatedSliderValues) {
         // console.log('pp plot slider updated')
-        let productionPlotData = this.filterDatabyPlotTypeParams('time', 'q', this.plotsParams);      
+        let productionPlotData = this.filterDatabyPlotTypeParams('time', 'q', this.plotsParams);
         let selectedProductionPlotData = this.filterDataByUpdatedSliderValues(productionPlotData, updatedSliderValues,'time');
         this.updateLoadPlots('#production-plot', 'productionPlot', selectedProductionPlotData);
     },
@@ -72,14 +73,14 @@ export const plotsMixin = {
         this.updateLoadPlots('#sqrt-plot', 'sqrtPlot', selectedSqrtPlotData);
     }
 
-    }, 
+    },
     created() {
     // let initialRangeSlidersValues = this.$store.getters.initialRangeSlidersValues;
     // const plotTypeArray = ['productionPlot', 'rtaPlot', 'rnpPlot'];
     // plotTypeArray.forEach(plotType => {
     //   this.setSliderExtremeThenSliderValue(Math.floor(initialRangeSlidersValues[plotType][0]), [initialRangeSlidersValues[plotType][0], this[`${plotType}SliderParams`].sliderValues[1]], plotType, 'min');
     //   this.setSliderExtremeThenSliderValue(Math.ceil(initialRangeSlidersValues[plotType][1]), [this[`${plotType}SliderParams`].sliderValues[0], initialRangeSlidersValues[plotType][1]], plotType, 'max');
-    // }) 
+    // })
 
     // this.productionPlotSliderParams.min = initialRangeSlidersValues.productionPlot[0];
     // this.productionPlotSliderParams.max = initialRangeSlidersValues.productionPlot[1];
@@ -91,7 +92,7 @@ export const plotsMixin = {
 
     // this.rnpPlotSliderParams.min = initialRangeSlidersValues.rnpPlot[0];
     // this.rnpPlotSliderParams.max = initialRangeSlidersValues.rnpPlot[1];
-    // this.rnpPlotSliderParams.sliderValues = [initialRangeSlidersValues.rnpPlot[0], initialRangeSlidersValues.rnpPlot[1]];     
+    // this.rnpPlotSliderParams.sliderValues = [initialRangeSlidersValues.rnpPlot[0], initialRangeSlidersValues.rnpPlot[1]];
     },
     methods: {
         reRenderPlotByUpdatedSliderValues(plotType) {
@@ -105,7 +106,7 @@ export const plotsMixin = {
     // filtering the original data (with all object keys like time, q, MBT, ...) into two specific object keys like time & q or q & MBT
     filterDatabyPlotTypeParams(xAxisParam, yAxisParam, data) {
         let plotTypeParamsData = [];
-        data.forEach(plotsDataSet => {        
+        data.forEach(plotsDataSet => {
             let singlePlotsParams = [];
             plotsDataSet.forEach(obj => {
                 let newObj = { // to set object key by variable, in ES6, we have to put the variable in square brackets in order to evaluate it.
@@ -144,11 +145,11 @@ export const plotsMixin = {
         const g = svg.append('g')
             .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
             .attr('margin', 'auto')
-        
+
         // Scales
         let xScale;
         let yScale;
-        
+
 
         // scale definition
         if (plotType === 'productionPlot' || plotType === 'rnpPlot') {
@@ -157,14 +158,14 @@ export const plotsMixin = {
 
         } else if (plotType === 'rtaPlot' || plotType === 'sqrtPlot') {
             xScale = d3.scaleLog().range([0, this.innerWidth]);
-            yScale = d3.scaleLog().range([this.innerHeight, 0]); 
-        } 
+            yScale = d3.scaleLog().range([this.innerHeight, 0]);
+        }
 
         // X-axis
         const xAxisCall = d3.axisBottom()
             .ticks(10, ",f")
             .tickFormat(d3.format(",.0f"));
-    
+
         const xAxis = g.append('g')
             .attr('class', 'x--axis')
             .attr('transform', `translate(0,${this.innerHeight})`);
@@ -231,7 +232,7 @@ export const plotsMixin = {
             verticalLineLabel = 'sqrt(t)@elf';
         }
 
-        // const t = () => d3.transition().duration(1000);    
+        // const t = () => d3.transition().duration(1000);
 
         // data = [[{}, ..], [{}, ..], ...]
         // elimination of the items in the data array, which has zero length due to the range of x-axis values that user select by the range slider
@@ -241,8 +242,8 @@ export const plotsMixin = {
             dataArrayWithNoZeroLengthItem.push(dataArr);
             }
         });
-            
-        this.updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel, svg);          
+
+        this.updateSliderAndGenerateLinePath(plotType ,xAxisLabel, yAxisLabel, xAxisParam, yAxisParam, xScale, yScale, xLabel, yLabel, g, dataArrayWithNoZeroLengthItem, xAxis, yAxis, xAxisCall, yAxisCall, verticalLineLabel, svg);
     },
     // Adding the new plot (generated from the new user inputs) to the existing plots on the page
     updateLoadPlots(parentElement, plotType, data) {
@@ -262,7 +263,7 @@ export const plotsMixin = {
         let path = d3.line()
                 .x(d => xScale(d[xAxisParam]))
                 .y(d => yScale(d[yAxisParam]));
-        
+
         return path;
     },
     findAxesMinMax(data, xAxisParam, yAxisParam) {
@@ -304,7 +305,7 @@ export const plotsMixin = {
             if (xAxisExtremse[0] === 0) {
                 xAxisExtremse[0] = 1;
             }
-    
+
             if (yAxisExtremse[0] === 0) {
                 yAxisExtremse[0] = 1;
             }
@@ -318,7 +319,7 @@ export const plotsMixin = {
     },
     updateAxesAndLinePath(xAxis, xAxisCall, yAxis, yAxisCall, xScale, yScale, g, data, pathGenerator, plotType, xAxisParam, yAxisParam, verticalLineLabel, xAxisExtremse, yAxisExtremse, svg) {
 
-           
+
         // Update axes
         xAxisCall.scale(xScale);
         xAxis.call(xAxisCall)
@@ -333,12 +334,12 @@ export const plotsMixin = {
         let selectedOpacities = [];
         const increaseInNextSelectedIndexOfOpacityValuesArray = Math.floor(opacityValues.length/dataLength);
 
-        for (let i=0; i<dataLength; i++) {            
+        for (let i=0; i<dataLength; i++) {
             selectedOpacities.push(opacityValues[i * increaseInNextSelectedIndexOfOpacityValuesArray]);
         };
         selectedOpacities = selectedOpacities.reverse();
         console.log('selcted opa:', selectedOpacities)
-        
+
         // Add a clipPath: everything out of this area won't be drawn
         g.append('defs')
             .append('clipPath')
@@ -349,26 +350,26 @@ export const plotsMixin = {
                 .attr('width', this.innerWidth)
                 .attr('height', this.innerHeight);
 
-        
+
         // Create the area variable: where both the area and the brush take place
         let main = g.append('g')
         .attr('class', 'main')
         .attr('clip-path', 'url(#clip)');
-        
+
         // Add brushing
         var brush = d3.brush()
         // .extent( [ [0,0], [this.innerWidth,this.innerHeight] ] )
-        .on("end", () => {   
-            
+        .on("end", () => {
+
             var s = d3.event.selection;
-  
+
             if (!s) {
               if (!idleTimeout) return idleTimeout = setTimeout(idled, idleDelay);
                 xScale.domain(xAxisExtremse);
                 yScale.domain(yAxisExtremse);
             } else {
                 // xScale.domain([xScale.invert(s[0][0]), xScale.invert(s[1][0])]);
-                xScale.domain([s[0][0] * this.innerHeight/this.innerWidth, s[1][0]].map(xScale.invert, xScale));               
+                xScale.domain([s[0][0] * this.innerHeight/this.innerWidth, s[1][0]].map(xScale.invert, xScale));
                 yScale.domain([s[1][1], s[0][1] * this.innerHeight/this.innerWidth].map(yScale.invert, yScale));
 
                 g.select(".brush").call(brush.move, null);
@@ -389,13 +390,13 @@ export const plotsMixin = {
         }),
 
         idleTimeout,
-        idleDelay = 350;  
-        
+        idleDelay = 350;
+
         g.append("g")
             .attr("class", "brush")
-            .call(brush);  
+            .call(brush);
 
-       // add tooltip to the plot when user hover 
+       // add tooltip to the plot when user hover
        this.addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam);
 
         // Update our line path
@@ -413,7 +414,7 @@ export const plotsMixin = {
         // A function that set idleTimeOut to null
         var idleTimeout
         function idled() { idleTimeout = null; }
-      
+
         // // line chart animation
         // console.log('lines:', lines)
         // let totalLength = [];
@@ -434,13 +435,13 @@ export const plotsMixin = {
 
 
         // // insertion of end of linear flow time line into the plots
-        // this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel); 
-    },  
-    addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam) { 
+        // this.addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel);
+    },
+    addTooltipByHovering(data, xScale, yScale, svg, g, xAxisParam, yAxisParam) {
 
         const mouseG = g.append('g')
             .attr('class', 'mouse-over-effects')
-            .style("display", "none"); 
+            .style("display", "none");
 
         mouseG.append('path') // this is the black vertical line to follow mouse
             .attr('class', 'mouse-line')
@@ -448,7 +449,7 @@ export const plotsMixin = {
             .style('stroke-width', '2px')
             .style('opacity', '0');
 
-        let lines = document.getElementsByClassName('line');     
+        let lines = document.getElementsByClassName('line');
 
         let mousePerLine = mouseG.selectAll('.mouse-per-line')
             .data(data)
@@ -495,19 +496,20 @@ export const plotsMixin = {
         })
         .on('mousemove', function() { // mouse moving over canvas
         //   mouseG.style('display', 'block')
+        console.log('innerhieght:', innerHeight)
           let mouse = d3.mouse(this);
           d3.selectAll('.mouse-line')
             .style('opacity', '1')
             .attr('d', () => {
               let d = `M${mouse[0]},${innerHeight}`;
-              d += ` ${ mouse[0]},${0}`;   
+              d += ` ${ mouse[0]},${0}`;
               return d;
             })
-            
+
 
           d3.selectAll('.mouse-per-line')
             .attr('transform', function(d, i) {
-              
+
               let beginning = 0,
                   end = lines[i].getTotalLength(),
                   target = null;
@@ -521,23 +523,23 @@ export const plotsMixin = {
                 if (pos.x > mouse[0])      end = target;
                 else if (pos.x < mouse[0]) beginning = target;
                 else break; //position found
-              };             
-              
+              };
+
               d3.select(this).select('text')
                 // .text(yScale.invert(pos.y).toFixed(2));
                 .text(`(${xScale.invert(pos.x).toFixed(2)} - ${yScale.invert(pos.y).toFixed(2)})`);
-                
+
               return `translate(${mouse[0]},${pos.y})`;
             });
         });
-    },  
+    },
     // add a vertical line to each plot to show the end of linear flow time
     addEndOfLinearFlowTimeLine(plotType, data, xScale, yScale, g, xAxisParam, yAxisParam, verticalLineLabel) {
 
         const distanceFromCurve = 5;
         // console.log('data end of linear:', data[0][0].endOfLinearFlowParams[yAxisParam])
         data.forEach(dataSet => {
-                // check to make sure end of linear flow line is in the range of x axis 
+                // check to make sure end of linear flow line is in the range of x axis
                 if (dataSet[0].endOfLinearFlowParams[xAxisParam] <= dataSet[0][xAxisParam] ) {
                     return
                 } else {
@@ -545,16 +547,16 @@ export const plotsMixin = {
                     console.log('test no yScale :', dataSet[0].endOfLinearFlowParams[yAxisParam])
                     console.log('test with yScale:', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
                     g.append('line')
-                    .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('x1', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
                     .attr('y1', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
-                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))                
+                    .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
                     .attr('y2', yScale(dataSet[0].endOfLinearFlowParams[yAxisParam]))
                     .transition().duration(1000)
                     .attr('x2', xScale(dataSet[0].endOfLinearFlowParams[xAxisParam]))
                     .attr('y2', this.innerHeight)
                     .attr('stroke', 'brown')
                     .style('stroke-dasharray', ('3, 3'));
-                    
+
                     g.append('text')
                     .text(`${verticalLineLabel} = ${dataSet[0].endOfLinearFlowParams[xAxisParam]}`)
                         .attr('fill', 'black')
@@ -563,7 +565,7 @@ export const plotsMixin = {
                         .attr('text-anchor', 'start')
                         .attr('font-size', '0.5rem')
                         .attr('font-style', 'italic')
-                        .style('fill', 'maroon') 
+                        .style('fill', 'maroon')
                 }
         })
     },
@@ -593,8 +595,8 @@ export const plotsMixin = {
         });
 
         return Math.min(...minArr);
-    }         
-    
+    }
+
 
 
     }
