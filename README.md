@@ -48,6 +48,6 @@ npm run build --report
 - This is the main page where user can change any parameters on the sidebar and see its effect on production plots & rate-normalized pressure plots
 ![image](https://user-images.githubusercontent.com/48249708/118304283-52fa5480-b49b-11eb-8dfc-c25b01ca0cb6.png)
 
-- Here user has changed two parameters; Xf which is fracture half-length & ye which is fracture spacing. You can see their new values on the shematic section and also their effect on the different plots and calculated outputs.
+- Here user has changed two parameters; Xf which is fracture half-length & ye which is fracture spacing. You can see their new values on the schematic section and also their effect on the different plots and calculated outputs. Worth to mention, user can see the previous plots (dotted curves) too so he can compare the new plots with the previous ones so he/she can has a good understanding of the parameter effect.
 ![image](https://user-images.githubusercontent.com/48249708/118304364-70c7b980-b49b-11eb-8660-e8f9f9c10ee1.png)
 
