@@ -41,4 +41,9 @@ npm run build
 npm run build --report
 ```
 
+## Screenshots
+
+![image](https://user-images.githubusercontent.com/48249708/118304082-0f9fe600-b49b-11eb-9ea6-ed486150fd59.png)
+![image](https://user-images.githubusercontent.com/48249708/118304283-52fa5480-b49b-11eb-8dfc-c25b01ca0cb6.png)
+![image](https://user-images.githubusercontent.com/48249708/118304364-70c7b980-b49b-11eb-8660-e8f9f9c10ee1.png)
 
